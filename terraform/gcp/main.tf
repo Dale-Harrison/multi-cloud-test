@@ -13,13 +13,14 @@ provider "google" {
 }
 
 # 1. Enable Services (Optional, best practice to ensure they are on)
-resource "google_project_service" "run_api" {
-  service            = "run.googleapis.com"
-  disable_on_destroy = false
-}
-
-resource "google_project_service" "artifact_registry_api" {
-  service            = "artifactregistry.googleapis.com"
+resource "google_project_service" "enabled_services" {
+  for_each = toset([
+    "run.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "pubsub.googleapis.com",
+    "compute.googleapis.com"
+  ])
+  service            = each.key
   disable_on_destroy = false
 }
 
