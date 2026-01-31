@@ -158,3 +158,67 @@ resource "aws_ecs_service" "app_service" {
     assign_public_ip = true
   }
 }
+
+resource "aws_sqs_queue" "hello_queue" {
+  name = "hello-queue"
+}
+
+resource "aws_ecr_repository" "worker_repo" {
+  name = "spring-boot-worker"
+}
+
+resource "aws_ecs_task_definition" "worker_task" {
+  family                   = "spring-boot-worker-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "spring-boot-worker"
+      image     = "${aws_ecr_repository.worker_repo.repository_url}:latest"
+      essential = true
+      environment = [
+        {
+          name  = "SPRING_PROFILES_ACTIVE"
+          value = "aws"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/aws/ecs/spring-boot-worker"
+          "awslogs-region"        = "us-east-1"
+          "awslogs-stream-prefix" = "ecs"
+          "awslogs-create-group"  = "true"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_service" "worker_service" {
+  name            = "spring-boot-worker-service"
+  cluster         = aws_ecs_cluster.dr_cluster.id
+  task_definition = aws_ecs_task_definition.worker_task.arn
+  desired_count   = 1
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 100
+  }
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  network_configuration {
+    subnets          = [aws_subnet.dr_subnet.id]
+    security_groups  = [aws_security_group.dr_sg.id]
+    assign_public_ip = true
+  }
+}

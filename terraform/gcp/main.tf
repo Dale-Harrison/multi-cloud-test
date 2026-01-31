@@ -23,6 +23,65 @@ resource "google_project_service" "artifact_registry_api" {
   disable_on_destroy = false
 }
 
+resource "google_pubsub_topic" "hello_topic" {
+  name = "hello-topic"
+}
+
+resource "google_pubsub_subscription" "hello_sub" {
+  name  = "hello-sub"
+  topic = google_pubsub_topic.hello_topic.name
+}
+
+resource "google_cloud_run_service" "worker_service" {
+  name     = "spring-boot-worker"
+  location = "us-central1" # Assuming var.region is us-central1 for this context
+
+  template {
+    spec {
+      containers {
+        image = "gcr.io/websitehosting-403318/spring-boot-worker:latest" # Assuming var.project_id is websitehosting-403318
+        env {
+          name  = "SPRING_PROFILES_ACTIVE"
+          value = "gcp"
+        }
+      }
+    }
+  }
+
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+}
+
+resource "google_project_service_identity" "pubsub_agent" {
+  provider = google-beta
+  project  = "websitehosting-403318" # Assuming var.project_id is websitehosting-403318
+  service  = "pubsub.googleapis.com"
+}
+
+resource "google_pubsub_topic_iam_binding" "binding" {
+  project = "websitehosting-403318" # Assuming var.project_id is websitehosting-403318
+  topic   = google_pubsub_topic.hello_topic.name
+  role    = "roles/pubsub.publisher"
+  members = [
+    "serviceAccount:${google_project_service_identity.pubsub_agent.email}",
+    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+  ]
+}
+
+resource "google_pubsub_subscription_iam_binding" "subscription_binding" {
+  project      = "websitehosting-403318" # Assuming var.project_id is websitehosting-403318
+  subscription = google_pubsub_subscription.hello_sub.name
+  role         = "roles/pubsub.subscriber"
+  members = [
+    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+  ]
+}
+
+data "google_compute_default_service_account" "default" {
+}
+
 # 2. Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
   location      = "us-central1"

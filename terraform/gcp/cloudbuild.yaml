@@ -1,8 +1,23 @@
 steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:$COMMIT_SHA', './spring-boot-hello']
+
+# Build the Spring Boot Worker container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA', './spring-boot-worker']
+
+# Push the Hello World container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:$COMMIT_SHA']
+
+# Push the Worker container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA']
+
 - id: 'tf-init'
   name: 'hashicorp/terraform:light'
   entrypoint: 'sh'
-  args: 
+  args:
   - '-c'
   - |
       cd terraform/gcp
@@ -11,7 +26,7 @@ steps:
 - id: 'tf-apply'
   name: 'hashicorp/terraform:light'
   entrypoint: 'sh'
-  args: 
+  args:
   - '-c'
   - |
       cd terraform/gcp
