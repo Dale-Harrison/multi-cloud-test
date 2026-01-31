@@ -5,6 +5,10 @@ terraform {
       version = "~> 5.0"
     }
   }
+  backend "gcs" {
+    bucket = "multi-cloud-terraform-state-gcp-dh"
+    prefix = "terraform/state"
+  }
 }
 
 provider "google" {
@@ -33,27 +37,7 @@ resource "google_pubsub_subscription" "hello_sub" {
   topic = google_pubsub_topic.hello_topic.name
 }
 
-resource "google_cloud_run_service" "worker_service" {
-  name     = "spring-boot-worker"
-  location = "us-central1" # Assuming var.region is us-central1 for this context
-
-  template {
-    spec {
-      containers {
-        image = "gcr.io/websitehosting-403318/spring-boot-worker:latest" # Assuming var.project_id is websitehosting-403318
-        env {
-          name  = "SPRING_PROFILES_ACTIVE"
-          value = "gcp"
-        }
-      }
-    }
-  }
-
-  traffic {
-    percent         = 100
-    latest_revision = true
-  }
-}
+# Consolidating to v2 API for both services
 
 resource "google_project_service_identity" "pubsub_agent" {
   provider = google-beta
@@ -114,14 +98,17 @@ resource "google_cloud_run_v2_service" "default" {
 resource "google_cloud_run_v2_service" "worker" {
   name     = "spring-boot-worker"
   location = "us-central1"
-  ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
+  ingress  = "INGRESS_TRAFFIC_ALL" # Allow all for verification, can be restricted later
 
   template {
     containers {
-      image = "gcr.io/websitehosting-403318/spring-boot-worker:latest"
+      image = "us-central1-docker.pkg.dev/websitehosting-403318/cloud-run-source-deploy/spring-boot-worker:latest"
       env {
         name  = "SPRING_PROFILES_ACTIVE"
         value = "gcp"
+      }
+      ports {
+        container_port = 8080
       }
     }
     scaling {
