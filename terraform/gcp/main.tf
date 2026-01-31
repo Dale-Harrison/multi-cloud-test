@@ -86,11 +86,9 @@ data "google_compute_default_service_account" "default" {
 # 2. Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
   location      = "us-central1"
-  repository_id = "cloud-run-source-deploy" # Managing the one created by CLI or a new one
+  repository_id = "cloud-run-source-deploy"
   format        = "DOCKER"
-  description   = "Docker repository for Spring Boot Hello World"
-
-  depends_on = [google_project_service.artifact_registry_api]
+  depends_on    = [google_project_service.enabled_services["artifactregistry.googleapis.com"]]
 }
 
 # 3. Cloud Run Service
@@ -100,19 +98,37 @@ resource "google_cloud_run_v2_service" "default" {
   ingress  = "INGRESS_TRAFFIC_ALL"
 
   template {
-    scaling {
-      max_instance_count = 1
-    }
-
     containers {
       image = "us-central1-docker.pkg.dev/websitehosting-403318/cloud-run-source-deploy/spring-boot-hello@sha256:b932df9733f8d6dfe81bcaeb6dcb7b1e8189f0a17011ff878491bf68015a9f13" # Updated to current live image
       ports {
         container_port = 8080
       }
     }
+    scaling {
+      max_instance_count = 1
+    }
   }
+  depends_on = [google_project_service.enabled_services["run.googleapis.com"]]
+}
 
-  depends_on = [google_project_service.run_api]
+resource "google_cloud_run_v2_service" "worker" {
+  name     = "spring-boot-worker"
+  location = "us-central1"
+  ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
+
+  template {
+    containers {
+      image = "gcr.io/websitehosting-403318/spring-boot-worker:latest"
+      env {
+        name  = "SPRING_PROFILES_ACTIVE"
+        value = "gcp"
+      }
+    }
+    scaling {
+      max_instance_count = 1
+    }
+  }
+  depends_on = [google_project_service.enabled_services["run.googleapis.com"]]
 }
 
 # 4. Public Access (IAM)
