@@ -139,7 +139,18 @@ resource "aws_ecs_service" "app_service" {
   cluster         = aws_ecs_cluster.dr_cluster.id
   task_definition = aws_ecs_task_definition.app_task.arn
   desired_count   = 1 # Warm Standby
-  launch_type     = "FARGATE"
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 100
+  }
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  deployment_maximum_percent         = 200
+  deployment_minimum_healthy_percent = 100
 
   network_configuration {
     subnets          = [aws_subnet.dr_subnet.id]
