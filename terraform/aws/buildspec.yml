@@ -10,8 +10,25 @@ phases:
       - echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
       - apt-get update && apt-get install -y terraform
       - terraform --version
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 177633253446.dkr.ecr.us-east-1.amazonaws.com
+      - REPOSITORY_URI=177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-hello
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
+      - echo "Building Docker image..."
+      - cd spring-boot-hello
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - cd ../..
+  post_build:
+    commands:
+      - echo "Pushing Docker image..."
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo "Entering AWS Terraform directory..."
       - cd terraform/aws
       - echo "Initializing Terraform..."
