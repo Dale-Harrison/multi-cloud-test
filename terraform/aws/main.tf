@@ -221,7 +221,7 @@ resource "aws_ecs_task_definition" "worker_task" {
           "awslogs-group"         = "/aws/ecs/spring-boot-worker"
           "awslogs-region"        = "us-east-1"
           "awslogs-stream-prefix" = "ecs"
-          "awslogs-create-group"  = "true"
+          "awslogs-create-group"  = "false"
         }
       }
     }
