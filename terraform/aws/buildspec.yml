@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - echo "Installing Terraform..."
+      - curl -s -qL -o terraform.zip https://releases.hashicorp.com/terraform/1.5.6/terraform_1.5.6_linux_amd64.zip
+      - unzip -o terraform.zip
+      - mv terraform /usr/local/bin/
+      - terraform --version
+  build:
+    commands:
+      - echo "Entering AWS Terraform directory..."
+      - cd terraform/aws
+      - echo "Initializing Terraform..."
+      - terraform init
+      - echo "Applying Terraform (AWS)..."
+      - terraform apply -auto-approve

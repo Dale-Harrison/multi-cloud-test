@@ -1,0 +1,18 @@
+steps:
+- id: 'tf-init'
+  name: 'hashicorp/terraform:light'
+  entrypoint: 'sh'
+  args: 
+  - '-c'
+  - |
+      cd terraform/gcp
+      terraform init
+
+- id: 'tf-apply'
+  name: 'hashicorp/terraform:light'
+  entrypoint: 'sh'
+  args: 
+  - '-c'
+  - |
+      cd terraform/gcp
+      terraform apply -auto-approve

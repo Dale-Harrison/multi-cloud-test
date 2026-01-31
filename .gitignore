@@ -1,0 +1,32 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+
+# Java / Maven
+target/
+*.jar
+*.war
+*.ear
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# AWS
+.aws/
+aws_credentials
+
+# GCP
+gcp_credentials.json
+key.json
