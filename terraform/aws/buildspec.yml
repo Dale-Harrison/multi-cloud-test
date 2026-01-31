@@ -12,6 +12,13 @@ phases:
       - terraform --version
   pre_build:
     commands:
+      - echo "Entering AWS Terraform directory..."
+      - cd terraform/aws
+      - echo "Initializing Terraform..."
+      - terraform init
+      - echo "Applying Terraform (AWS)..."
+      - terraform apply -auto-approve
+      - cd ../..
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 177633253446.dkr.ecr.us-east-1.amazonaws.com
       - REPOSITORY_URI=177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-hello
@@ -35,9 +42,3 @@ phases:
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - docker push 177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-worker:latest
       - echo Writing image definitions file...
-      - echo "Entering AWS Terraform directory..."
-      - cd terraform/aws
-      - echo "Initializing Terraform..."
-      - terraform init
-      - echo "Applying Terraform (AWS)..."
-      - terraform apply -auto-approve
