@@ -51,7 +51,7 @@ resource "google_pubsub_topic_iam_binding" "binding" {
   role    = "roles/pubsub.publisher"
   members = [
     "serviceAccount:${google_project_service_identity.pubsub_agent.email}",
-    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+    "serviceAccount:619003853605-compute@developer.gserviceaccount.com",
   ]
 }
 
@@ -60,12 +60,11 @@ resource "google_pubsub_subscription_iam_binding" "subscription_binding" {
   subscription = google_pubsub_subscription.hello_sub.name
   role         = "roles/pubsub.subscriber"
   members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+    "serviceAccount:619003853605-compute@developer.gserviceaccount.com",
   ]
 }
 
-data "google_compute_default_service_account" "default" {
-}
+# Using hardcoded default compute service account to avoid data source permission errors in Cloud Build
 
 # 2. Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
