@@ -23,7 +23,7 @@ phases:
       - cd spring-boot-hello
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
-      - cd ../..
+      - cd ..
   post_build:
     commands:
       - echo "Pushing Docker image..."
