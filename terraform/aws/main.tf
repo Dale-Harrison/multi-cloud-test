@@ -186,6 +186,11 @@ resource "aws_sqs_queue" "hello_queue" {
   name = "hello-queue"
 }
 
+resource "aws_cloudwatch_log_group" "worker_log_group" {
+  name              = "/aws/ecs/spring-boot-worker"
+  retention_in_days = 7
+}
+
 resource "aws_ecr_repository" "worker_repo" {
   name = "spring-boot-worker"
 }
