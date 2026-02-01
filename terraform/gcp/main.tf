@@ -16,6 +16,11 @@ provider "google" {
   region  = "us-central1"
 }
 
+import {
+  id = "projects/websitehosting-403318/locations/us-central1/services/spring-boot-hello"
+  to = google_cloud_run_v2_service.default
+}
+
 # 1. Enable Services (Optional, best practice to ensure they are on)
 # Enabled services handled via Cloud Build step to avoid Terraform permission issues
 # resource "google_project_service" "enabled_services" {
@@ -72,6 +77,11 @@ resource "google_artifact_registry_repository" "repo" {
   location      = "us-central1"
   repository_id = "cloud-run-source-deploy"
   format        = "DOCKER"
+}
+
+import {
+  id = "projects/websitehosting-403318/locations/us-central1/repositories/cloud-run-source-deploy"
+  to = google_artifact_registry_repository.repo
 }
 
 # 3. Cloud Run Service
