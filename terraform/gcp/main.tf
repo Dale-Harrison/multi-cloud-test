@@ -12,8 +12,8 @@ terraform {
 }
 
 provider "google" {
-  project = "websitehosting-403318"
-  region  = "us-central1"
+  project = var.project_id
+  region  = var.region
 }
  
 variable "commit_sha" {
@@ -22,7 +22,7 @@ variable "commit_sha" {
 }
 
 import {
-  id = "projects/websitehosting-403318/locations/us-central1/services/spring-boot-hello"
+  id = "projects/${var.project_id}/locations/${var.region}/services/spring-boot-hello"
   to = google_cloud_run_v2_service.default
 }
 
@@ -57,21 +57,21 @@ resource "google_project_service_identity" "pubsub_agent" {
 }
 
 resource "google_pubsub_topic_iam_binding" "binding" {
-  project = "websitehosting-403318" # Assuming var.project_id is websitehosting-403318
+  project = var.project_id
   topic   = google_pubsub_topic.hello_topic.name
   role    = "roles/pubsub.publisher"
   members = [
     "serviceAccount:${google_project_service_identity.pubsub_agent.email}",
-    "serviceAccount:619003853605-compute@developer.gserviceaccount.com",
+    "serviceAccount:${var.compute_service_account}",
   ]
 }
 
 resource "google_pubsub_subscription_iam_binding" "subscription_binding" {
-  project      = "websitehosting-403318" # Assuming var.project_id is websitehosting-403318
+  project      = var.project_id
   subscription = google_pubsub_subscription.hello_sub.name
   role         = "roles/pubsub.subscriber"
   members = [
-    "serviceAccount:619003853605-compute@developer.gserviceaccount.com",
+    "serviceAccount:${var.compute_service_account}",
   ]
 }
 
@@ -79,25 +79,25 @@ resource "google_pubsub_subscription_iam_binding" "subscription_binding" {
 
 # 2. Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
-  location      = "us-central1"
+  location      = var.region
   repository_id = "cloud-run-source-deploy"
   format        = "DOCKER"
 }
 
 import {
-  id = "projects/websitehosting-403318/locations/us-central1/repositories/cloud-run-source-deploy"
+  id = "projects/${var.project_id}/locations/${var.region}/repositories/cloud-run-source-deploy"
   to = google_artifact_registry_repository.repo
 }
 
 # 3. Cloud Run Service
 resource "google_cloud_run_v2_service" "default" {
   name     = "spring-boot-hello"
-  location = "us-central1"
+  location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
 
   template {
     containers {
-      image = "us-central1-docker.pkg.dev/websitehosting-403318/cloud-run-source-deploy/spring-boot-hello:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/spring-boot-hello:latest"
       ports {
         container_port = 8080
       }
@@ -118,12 +118,12 @@ resource "google_cloud_run_v2_service" "default" {
 
 resource "google_cloud_run_v2_service" "worker" {
   name     = "spring-boot-worker"
-  location = "us-central1"
+  location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL" # Allow all for verification, can be restricted later
 
   template {
     containers {
-      image = "us-central1-docker.pkg.dev/websitehosting-403318/cloud-run-source-deploy/spring-boot-worker:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/spring-boot-worker:latest"
       env {
         name  = "SPRING_PROFILES_ACTIVE"
         value = "gcp"

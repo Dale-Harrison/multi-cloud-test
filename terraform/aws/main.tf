@@ -15,7 +15,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 variable "commit_sha" {
@@ -120,7 +120,7 @@ resource "aws_ecs_task_definition" "app_task" {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = "/aws/ecs/spring-boot-hello"
-          "awslogs-region"        = "us-east-1"
+          "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
       }
@@ -252,7 +252,7 @@ resource "aws_ecs_task_definition" "worker_task" {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = "/aws/ecs/spring-boot-worker"
-          "awslogs-region"        = "us-east-1"
+          "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
       }
