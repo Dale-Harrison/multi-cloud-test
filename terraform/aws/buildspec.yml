@@ -16,12 +16,11 @@ phases:
       - cd terraform/aws
       - echo "Initializing Terraform..."
       - terraform init
-      - echo "Applying Terraform (AWS)..."
-      - terraform apply -auto-approve
       - cd ../..
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 177633253446.dkr.ecr.us-east-1.amazonaws.com
       - REPOSITORY_URI=177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-hello
+      - WORKER_REPOSITORY_URI=177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-worker
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
@@ -32,7 +31,8 @@ phases:
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
       - cd ..
       - cd spring-boot-worker
-      - docker build -t 177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-worker:latest .
+      - docker build -t $WORKER_REPOSITORY_URI:latest .
+      - docker tag $WORKER_REPOSITORY_URI:latest $WORKER_REPOSITORY_URI:$IMAGE_TAG
       - cd ..
   post_build:
     commands:
@@ -40,5 +40,10 @@ phases:
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - docker push 177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-worker:latest
+      - docker push $WORKER_REPOSITORY_URI:latest
+      - docker push $WORKER_REPOSITORY_URI:$IMAGE_TAG
+      - echo "Applying Terraform (AWS)..."
+      - cd terraform/aws
+      - terraform apply -auto-approve -var="commit_sha=$IMAGE_TAG"
+      - cd ../..
       - echo Writing image definitions file...

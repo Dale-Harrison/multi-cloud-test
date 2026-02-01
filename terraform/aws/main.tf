@@ -18,6 +18,11 @@ provider "aws" {
   region = "us-east-1"
 }
 
+variable "commit_sha" {
+  type    = string
+  default = "latest"
+}
+
 # 1. Network Infrastructure (Required for Fargate)
 resource "aws_vpc" "dr_vpc" {
   cidr_block = "10.0.0.0/16"
