@@ -15,6 +15,11 @@ provider "google" {
   project = "websitehosting-403318"
   region  = "us-central1"
 }
+ 
+variable "commit_sha" {
+  type    = string
+  default = "latest"
+}
 
 import {
   id = "projects/websitehosting-403318/locations/us-central1/services/spring-boot-hello"
@@ -100,6 +105,10 @@ resource "google_cloud_run_v2_service" "default" {
         name  = "SPRING_PROFILES_ACTIVE"
         value = "gcp"
       }
+      env {
+        name  = "COMMIT_SHA"
+        value = var.commit_sha
+      }
     }
     scaling {
       max_instance_count = 1
@@ -118,6 +127,10 @@ resource "google_cloud_run_v2_service" "worker" {
       env {
         name  = "SPRING_PROFILES_ACTIVE"
         value = "gcp"
+      }
+      env {
+        name  = "COMMIT_SHA"
+        value = var.commit_sha
       }
       ports {
         container_port = 8080
