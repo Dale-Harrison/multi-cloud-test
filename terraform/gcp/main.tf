@@ -96,7 +96,7 @@ resource "google_cloud_run_v2_service" "default" {
       ports {
         container_port = 8080
       }
-      environment {
+      env {
         name  = "SPRING_PROFILES_ACTIVE"
         value = "gcp"
       }
