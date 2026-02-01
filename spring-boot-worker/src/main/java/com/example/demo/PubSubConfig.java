@@ -23,25 +23,30 @@ public class PubSubConfig {
         return new DirectChannel();
     }
 
-    @Bean
-    public PubSubInboundChannelAdapter messageChannelAdapter(
-            @Qualifier("inputMessageChannel") MessageChannel inputChannel,
-            PubSubTemplate pubSubTemplate) {
-        PubSubInboundChannelAdapter adapter = new PubSubInboundChannelAdapter(pubSubTemplate, "hello-sub");
-        adapter.setOutputChannel(inputChannel);
-        adapter.setAckMode(com.google.cloud.spring.pubsub.integration.AckMode.MANUAL);
-        adapter.setAutoStartup(false); // Disable auto-startup to prevent blocking
-        return adapter;
-    }
-
-    @Bean
-    public CommandLineRunner startupRunner(PubSubInboundChannelAdapter adapter) {
-        return args -> {
-            new Thread(() -> {
-                System.out.println("Starting PubSubAdapter in background thread...");
-                adapter.start();
-                System.out.println("PubSubAdapter started.");
-            }).start();
-        };
-    }
+    /*
+     * @Bean
+     * public PubSubInboundChannelAdapter messageChannelAdapter(
+     * 
+     * @Qualifier("inputMessageChannel") MessageChannel inputChannel,
+     * PubSubTemplate pubSubTemplate) {
+     * PubSubInboundChannelAdapter adapter = new
+     * PubSubInboundChannelAdapter(pubSubTemplate, "hello-sub");
+     * adapter.setOutputChannel(inputChannel);
+     * adapter.setAckMode(com.google.cloud.spring.pubsub.integration.AckMode.MANUAL)
+     * ;
+     * adapter.setAutoStartup(false); // Disable auto-startup to prevent blocking
+     * return adapter;
+     * }
+     * 
+     * @Bean
+     * public CommandLineRunner startupRunner(PubSubInboundChannelAdapter adapter) {
+     * return args -> {
+     * new Thread(() -> {
+     * System.out.println("Starting PubSubAdapter in background thread...");
+     * adapter.start();
+     * System.out.println("PubSubAdapter started.");
+     * }).start();
+     * };
+     * }
+     */
 }
