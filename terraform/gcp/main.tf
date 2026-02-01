@@ -135,6 +135,9 @@ resource "google_cloud_run_v2_service" "worker" {
       ports {
         container_port = 8080
       }
+      resources {
+        cpu_idle = false
+      }
       startup_probe {
         initial_delay_seconds = 5
         timeout_seconds       = 3
