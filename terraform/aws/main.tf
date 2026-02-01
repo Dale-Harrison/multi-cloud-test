@@ -92,6 +92,7 @@ resource "aws_ecs_task_definition" "app_task" {
   cpu                      = 256
   memory                   = 512
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([
     {
@@ -100,6 +101,20 @@ resource "aws_ecs_task_definition" "app_task" {
       cpu       = 256
       memory    = 512
       essential = true
+      environment = [
+        {
+          name  = "SPRING_PROFILES_ACTIVE"
+          value = "aws"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/aws/ecs/spring-boot-hello"
+          "awslogs-region"        = "us-east-1"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
       portMappings = [
         {
           containerPort = 8080
@@ -184,6 +199,11 @@ resource "aws_ecs_service" "app_service" {
 
 resource "aws_sqs_queue" "hello_queue" {
   name = "hello-queue"
+}
+
+resource "aws_cloudwatch_log_group" "hello_log_group" {
+  name              = "/aws/ecs/spring-boot-hello"
+  retention_in_days = 7
 }
 
 resource "aws_cloudwatch_log_group" "worker_log_group" {
