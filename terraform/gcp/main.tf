@@ -72,7 +72,6 @@ resource "google_artifact_registry_repository" "repo" {
   location      = "us-central1"
   repository_id = "cloud-run-source-deploy"
   format        = "DOCKER"
-  # depends_on    = [google_project_service.enabled_services["artifactregistry.googleapis.com"]]
 }
 
 # 3. Cloud Run Service
@@ -92,7 +91,6 @@ resource "google_cloud_run_v2_service" "default" {
       max_instance_count = 1
     }
   }
-  depends_on = [google_project_service.enabled_services["run.googleapis.com"]]
 }
 
 resource "google_cloud_run_v2_service" "worker" {
@@ -115,7 +113,6 @@ resource "google_cloud_run_v2_service" "worker" {
       max_instance_count = 1
     }
   }
-  depends_on = [google_project_service.enabled_services["run.googleapis.com"]]
 }
 
 # 4. Public Access (IAM)
