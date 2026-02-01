@@ -118,6 +118,15 @@ resource "google_cloud_run_v2_service" "worker" {
       ports {
         container_port = 8080
       }
+      startup_probe {
+        initial_delay_seconds = 5
+        timeout_seconds       = 3
+        period_seconds        = 10
+        failure_threshold     = 20
+        tcp_socket {
+          port = 8080
+        }
+      }
     }
     scaling {
       max_instance_count = 1
