@@ -14,6 +14,10 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA']
 
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args: ['services', 'enable', 'run.googleapis.com', 'artifactregistry.googleapis.com', 'pubsub.googleapis.com', 'compute.googleapis.com', '--project', '$PROJECT_ID']
+
 - id: 'tf-init'
   name: 'hashicorp/terraform:light'
   entrypoint: 'sh'

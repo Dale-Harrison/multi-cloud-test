@@ -17,16 +17,17 @@ provider "google" {
 }
 
 # 1. Enable Services (Optional, best practice to ensure they are on)
-resource "google_project_service" "enabled_services" {
-  for_each = toset([
-    "run.googleapis.com",
-    "artifactregistry.googleapis.com",
-    "pubsub.googleapis.com",
-    "compute.googleapis.com"
-  ])
-  service            = each.key
-  disable_on_destroy = false
-}
+# Enabled services handled via Cloud Build step to avoid Terraform permission issues
+# resource "google_project_service" "enabled_services" {
+#   for_each = toset([
+#     "run.googleapis.com",
+#     "artifactregistry.googleapis.com",
+#     "pubsub.googleapis.com",
+#     "compute.googleapis.com"
+#   ])
+#   service            = each.key
+#   disable_on_destroy = false
+# }
 
 resource "google_pubsub_topic" "hello_topic" {
   name = "hello-topic"
@@ -71,7 +72,7 @@ resource "google_artifact_registry_repository" "repo" {
   location      = "us-central1"
   repository_id = "cloud-run-source-deploy"
   format        = "DOCKER"
-  depends_on    = [google_project_service.enabled_services["artifactregistry.googleapis.com"]]
+  # depends_on    = [google_project_service.enabled_services["artifactregistry.googleapis.com"]]
 }
 
 # 3. Cloud Run Service
