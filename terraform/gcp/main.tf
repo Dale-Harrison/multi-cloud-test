@@ -92,9 +92,13 @@ resource "google_cloud_run_v2_service" "default" {
 
   template {
     containers {
-      image = "us-central1-docker.pkg.dev/websitehosting-403318/cloud-run-source-deploy/spring-boot-hello@sha256:b932df9733f8d6dfe81bcaeb6dcb7b1e8189f0a17011ff878491bf68015a9f13" # Updated to current live image
+      image = "us-central1-docker.pkg.dev/websitehosting-403318/cloud-run-source-deploy/spring-boot-hello:latest"
       ports {
         container_port = 8080
+      }
+      environment {
+        name  = "SPRING_PROFILES_ACTIVE"
+        value = "gcp"
       }
     }
     scaling {
