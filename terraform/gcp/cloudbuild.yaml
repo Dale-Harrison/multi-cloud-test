@@ -1,18 +1,22 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:$COMMIT_SHA', './spring-boot-hello']
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:$COMMIT_SHA', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:latest', './spring-boot-hello']
 
 # Build the Spring Boot Worker container image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA', './spring-boot-worker']
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:latest', './spring-boot-worker']
 
 # Push the Hello World container image
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:$COMMIT_SHA']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:latest']
 
 # Push the Worker container image
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:latest']
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
