@@ -110,6 +110,10 @@ resource "aws_ecs_task_definition" "app_task" {
         {
           name  = "SPRING_PROFILES_ACTIVE"
           value = "aws"
+        },
+        {
+          name  = "COMMIT_SHA"
+          value = var.commit_sha
         }
       ]
       logConfiguration = {
@@ -238,6 +242,10 @@ resource "aws_ecs_task_definition" "worker_task" {
         {
           name  = "SPRING_PROFILES_ACTIVE"
           value = "aws"
+        },
+        {
+          name  = "COMMIT_SHA"
+          value = var.commit_sha
         }
       ]
       logConfiguration = {
