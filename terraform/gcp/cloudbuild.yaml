@@ -19,7 +19,7 @@ steps:
   args: ['services', 'enable', 'run.googleapis.com', 'artifactregistry.googleapis.com', 'pubsub.googleapis.com', 'compute.googleapis.com', '--project', '$PROJECT_ID']
 
 - id: 'tf-init'
-  name: 'hashicorp/terraform:light'
+  name: 'hashicorp/terraform:1.5.7'
   entrypoint: 'sh'
   args:
   - '-c'
@@ -28,7 +28,7 @@ steps:
       terraform init
 
 - id: 'tf-apply'
-  name: 'hashicorp/terraform:light'
+  name: 'hashicorp/terraform:1.5.7'
   entrypoint: 'sh'
   args:
   - '-c'
