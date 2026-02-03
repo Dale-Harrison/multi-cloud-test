@@ -167,6 +167,14 @@ resource "google_cloud_run_service_iam_member" "public_access" {
   member   = "allUsers"
 }
 
+resource "google_cloud_run_service_iam_member" "worker_public_access" {
+  location = google_cloud_run_v2_service.worker.location
+  project  = google_cloud_run_v2_service.worker.project
+  service  = google_cloud_run_v2_service.worker.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
 # 5. API Gateway
 resource "google_api_gateway_api" "hello_api" {
   provider = google-beta
