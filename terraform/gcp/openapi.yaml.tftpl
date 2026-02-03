@@ -1,0 +1,30 @@
+swagger: "2.0"
+info:
+  title: "Spring Boot Hello API"
+  description: "API Gateway for Spring Boot Hello Service"
+  version: "1.0.0"
+schemes:
+  - "https"
+produces:
+  - "application/json"
+paths:
+  /:
+    get:
+      summary: "Home endpoint"
+      operationId: "home"
+      x-google-backend:
+        address: "${backend_url}"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "string"
+  /{proxy+}:
+    options:
+      summary: "CORS support"
+      operationId: "corsProxy"
+      x-google-backend:
+        address: "${backend_url}"
+      responses:
+        200:
+          description: "OK"

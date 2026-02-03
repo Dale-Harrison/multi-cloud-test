@@ -16,6 +16,8 @@ phases:
       - cd terraform/aws
       - echo "Initializing Terraform..."
       - terraform init
+      - echo "Running Terraform Plan (AWS)..."
+      - terraform plan -var="commit_sha=$IMAGE_TAG"
       - cd ../..
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 177633253446.dkr.ecr.us-east-1.amazonaws.com

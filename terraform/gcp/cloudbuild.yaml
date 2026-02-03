@@ -31,6 +31,15 @@ steps:
       cd terraform/gcp
       terraform init
 
+- id: 'tf-plan'
+  name: 'hashicorp/terraform:1.5.7'
+  entrypoint: 'sh'
+  args:
+  - '-c'
+  - |
+      cd terraform/gcp
+      terraform plan
+
 - id: 'tf-apply'
   name: 'hashicorp/terraform:1.5.7'
   entrypoint: 'sh'

@@ -206,6 +206,45 @@ resource "aws_ecs_service" "app_service" {
   }
 }
 
+# 8. API Gateway (HTTP)
+resource "aws_apigatewayv2_api" "http_api" {
+  name          = "spring-boot-api"
+  protocol_type = "HTTP"
+}
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.http_api.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+# NOTE: In a production environment, you would use an Application Load Balancer (ALB)
+# or a VPC Link with Cloud Map for stable service discovery.
+# For this demonstration, we'll configure a placeholder integration.
+resource "aws_apigatewayv2_integration" "app_integration" {
+  api_id           = aws_apigatewayv2_api.http_api.id
+  integration_type = "HTTP_PROXY"
+  integration_method = "ANY"
+  # This would normally be the DNS of an ALB or the internal IP via VPC Link
+  integration_uri    = "http://example.com" # Placeholder
+}
+
+resource "aws_apigatewayv2_route" "default_route" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "ANY /{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+}
+
+resource "aws_apigatewayv2_route" "root_route" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "ANY /"
+  target    = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+}
+
+output "api_gateway_url" {
+  value = aws_apigatewayv2_api.http_api.api_endpoint
+}
+
 resource "aws_sqs_queue" "hello_queue" {
   name = "hello-queue"
 }

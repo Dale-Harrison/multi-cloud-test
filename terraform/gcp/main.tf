@@ -162,3 +162,39 @@ resource "google_cloud_run_service_iam_member" "public_access" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# 5. API Gateway
+resource "google_api_gateway_api" "hello_api" {
+  provider = google-beta
+  api_id   = "spring-boot-hello-api"
+}
+
+resource "google_api_gateway_api_config" "api_cfg" {
+  provider      = google-beta
+  api           = google_api_gateway_api.hello_api.api_id
+  api_config_id = "v1"
+
+  openapi_documents {
+    doc {
+      path     = "openapi.yaml"
+      contents = base64encode(templatefile("${path.module}/openapi.yaml.tftpl", {
+        backend_url = google_cloud_run_v2_service.default.uri
+      }))
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "google_api_gateway_gateway" "gw" {
+  provider   = google_beta
+  api_config = google_api_gateway_api_config.api_cfg.id
+  gateway_id = "hello-gateway"
+  region     = var.region
+}
+
+output "api_gateway_url" {
+  value = "https://${google_api_gateway_gateway.gw.default_hostname}"
+}
