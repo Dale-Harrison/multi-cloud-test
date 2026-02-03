@@ -174,7 +174,7 @@ resource "google_api_gateway_api_config" "api_cfg" {
   api_config_id = "v1"
 
   openapi_documents {
-    doc {
+    document {
       path     = "openapi.yaml"
       contents = base64encode(templatefile("${path.module}/openapi.yaml.tftpl", {
         backend_url = google_cloud_run_v2_service.default.uri
