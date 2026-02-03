@@ -35,7 +35,7 @@ paths:
           description: "OK"
           schema:
             type: "string"
-  /{proxy+}:
+  /{proxy=**}:
     options:
       summary: "CORS support"
       operationId: "corsProxy"
