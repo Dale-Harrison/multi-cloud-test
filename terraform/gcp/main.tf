@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 5.0"
+    }
   }
   backend "gcs" {
     bucket = "multi-cloud-terraform-state-gcp-dh"
@@ -21,10 +25,8 @@ variable "commit_sha" {
   default = "latest"
 }
 
-import {
-  id = "projects/${var.project_id}/locations/${var.region}/services/spring-boot-hello"
-  to = google_cloud_run_v2_service.default
-}
+# Imports removed because variables are not supported in import blocks.
+# Use 'terraform import' manually if these resources already exist in state.
 
 # 1. Enable Services (Optional, best practice to ensure they are on)
 # Enabled services handled via Cloud Build step to avoid Terraform permission issues
@@ -84,10 +86,7 @@ resource "google_artifact_registry_repository" "repo" {
   format        = "DOCKER"
 }
 
-import {
-  id = "projects/${var.project_id}/locations/${var.region}/repositories/cloud-run-source-deploy"
-  to = google_artifact_registry_repository.repo
-}
+# Import removed
 
 # 3. Cloud Run Service
 resource "google_cloud_run_v2_service" "default" {
@@ -189,7 +188,7 @@ resource "google_api_gateway_api_config" "api_cfg" {
 }
 
 resource "google_api_gateway_gateway" "gw" {
-  provider   = google_beta
+  provider   = google-beta
   api_config = google_api_gateway_api_config.api_cfg.id
   gateway_id = "hello-gateway"
   region     = var.region
