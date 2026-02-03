@@ -35,12 +35,3 @@ paths:
           description: "OK"
           schema:
             type: "string"
-  /{proxy=**}:
-    options:
-      summary: "CORS support"
-      operationId: "corsProxy"
-      x-google-backend:
-        address: "${backend_url}"
-      responses:
-        200:
-          description: "OK"

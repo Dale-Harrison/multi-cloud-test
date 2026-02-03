@@ -176,7 +176,7 @@ resource "google_api_gateway_api" "hello_api" {
 resource "google_api_gateway_api_config" "api_cfg" {
   provider      = google-beta
   api           = google_api_gateway_api.hello_api.api_id
-  api_config_id = "v1"
+  api_config_id = "config-v3"
 
   openapi_documents {
     document {
