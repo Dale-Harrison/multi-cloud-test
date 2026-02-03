@@ -17,7 +17,9 @@ phases:
       - echo "Initializing Terraform..."
       - terraform init
       - echo "Running Terraform Plan (AWS)..."
-      - terraform plan -var="commit_sha=$IMAGE_TAG"
+      - # Setting TF_VAR_commit_sha ensures terraform picks it up automatically
+      - export TF_VAR_commit_sha=$IMAGE_TAG
+      - terraform plan
       - cd ../..
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 177633253446.dkr.ecr.us-east-1.amazonaws.com
@@ -46,6 +48,7 @@ phases:
       - docker push $WORKER_REPOSITORY_URI:$IMAGE_TAG
       - echo "Applying Terraform (AWS)..."
       - cd terraform/aws
-      - terraform apply -auto-approve -var="commit_sha=$IMAGE_TAG"
+      - export TF_VAR_commit_sha=$IMAGE_TAG
+      - terraform apply -auto-approve
       - cd ../..
       - echo Writing image definitions file...

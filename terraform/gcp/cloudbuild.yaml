@@ -38,6 +38,7 @@ steps:
   - '-c'
   - |
       cd terraform/gcp
+      export TF_VAR_commit_sha=$COMMIT_SHA
       terraform plan
 
 - id: 'tf-apply'
@@ -47,4 +48,5 @@ steps:
   - '-c'
   - |
       cd terraform/gcp
+      export TF_VAR_commit_sha=$COMMIT_SHA
       terraform apply -auto-approve
