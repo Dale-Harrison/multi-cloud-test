@@ -3,6 +3,7 @@ package com.example.demo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -17,10 +18,15 @@ public class HelloController {
 
     @GetMapping("/")
     public String home() {
-        String msg = "Hello from "
-                + (System.getenv("AWS_EXECUTION_ENV") != null ? System.getenv("AWS_EXECUTION_ENV") : "GCP");
-        logger.info("Triggered home endpoint. Publishing message: {}", msg);
-        messagePublisher.publish(msg);
-        return "Hello World from Cloud Run!";
+        return "Welcome to the Multi-Cloud Spring Boot App! Use /publish?message=... to send a message.";
+    }
+
+    @GetMapping("/publish")
+    public String publish(@RequestParam(defaultValue = "Default message") String message) {
+        String env = (System.getenv("AWS_EXECUTION_ENV") != null ? "AWS" : "GCP");
+        String finalMsg = String.format("[%s] %s", env, message);
+        logger.info("Publishing message: {}", finalMsg);
+        messagePublisher.publish(finalMsg);
+        return "Message published: " + finalMsg;
     }
 }

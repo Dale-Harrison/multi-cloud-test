@@ -19,6 +19,22 @@ paths:
           description: "OK"
           schema:
             type: "string"
+  /publish:
+    get:
+      summary: "Publish message"
+      operationId: "publish"
+      parameters:
+        - name: message
+          in: query
+          required: false
+          type: string
+      x-google-backend:
+        address: "${backend_url}"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "string"
   /{proxy+}:
     options:
       summary: "CORS support"
