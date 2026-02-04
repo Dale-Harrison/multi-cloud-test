@@ -285,6 +285,10 @@ resource "aws_apigatewayv2_integration" "app_integration" {
   integration_type = "HTTP_PROXY"
   integration_method = "ANY"
   integration_uri    = "http://${aws_lb.hello_lb.dns_name}"
+
+  request_parameters = {
+    "overwrite:header.host" = aws_lb.hello_lb.dns_name
+  }
 }
 
 resource "aws_apigatewayv2_route" "default_route" {
@@ -357,6 +361,10 @@ resource "aws_cloudfront_distribution" "api_cdn" {
 
 output "cloudfront_url" {
   value = "https://${aws_cloudfront_distribution.api_cdn.domain_name}"
+}
+
+output "alb_dns_name" {
+  value = aws_lb.hello_lb.dns_name
 }
 
 resource "aws_sqs_queue" "hello_queue" {
