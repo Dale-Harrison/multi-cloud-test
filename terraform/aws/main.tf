@@ -196,9 +196,60 @@ resource "aws_iam_role" "ecs_task_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_sqs_policy" {
-  role       = aws_iam_role.ecs_task_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+resource "aws_iam_role_policy" "ecs_task_sqs_policy" {
+  name = "ecs_task_sqs_policy"
+  role = aws_iam_role.ecs_task_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes",
+          "sqs:GetQueueUrl"
+        ]
+        Resource = [
+          aws_sqs_queue.hello_queue.arn,
+          aws_sqs_queue.replay_queue.arn
+        ]
+      }
+    ]
+  })
+}
+
+# IAM User for GCP Worker to access SQS Replay Queue
+resource "aws_iam_user" "gcp_worker" {
+  name = "gcp-worker-sqs-user"
+}
+
+resource "aws_iam_access_key" "gcp_worker" {
+  user = aws_iam_user.gcp_worker.name
+}
+
+resource "aws_iam_user_policy" "gcp_worker_sqs_policy" {
+  name = "GCPWorkerSQSPolicy"
+  user = aws_iam_user.gcp_worker.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:GetQueueUrl",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [
+          aws_sqs_queue.replay_queue.arn
+        ]
+      }
+    ]
+  })
 }
 
 resource "aws_lb" "hello_lb" {
@@ -367,8 +418,25 @@ output "alb_dns_name" {
   value = aws_lb.hello_lb.dns_name
 }
 
+output "replay_queue_url" {
+  value = aws_sqs_queue.replay_queue.id
+}
+
+output "gcp_worker_aws_access_key_id" {
+  value = aws_iam_access_key.gcp_worker.id
+}
+
+output "gcp_worker_aws_secret_access_key" {
+  value     = aws_iam_access_key.gcp_worker.secret
+  sensitive = true
+}
+
 resource "aws_sqs_queue" "hello_queue" {
   name = "hello-queue"
+}
+
+resource "aws_sqs_queue" "replay_queue" {
+  name = "replay-queue"
 }
 
 resource "aws_cloudwatch_log_group" "hello_log_group" {

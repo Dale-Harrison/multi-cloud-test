@@ -136,6 +136,18 @@ resource "google_cloud_run_v2_service" "worker" {
         name  = "COMMIT_SHA"
         value = var.commit_sha
       }
+      env {
+        name  = "AWS_ACCESS_KEY_ID"
+        value = var.aws_access_key_id
+      }
+      env {
+        name  = "AWS_SECRET_ACCESS_KEY"
+        value = var.aws_secret_access_key
+      }
+      env {
+        name  = "AWS_REGION"
+        value = var.aws_region
+      }
       ports {
         container_port = 8080
       }
