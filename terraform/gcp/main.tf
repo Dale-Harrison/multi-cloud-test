@@ -213,6 +213,7 @@ output "api_gateway_url" {
 
 # 6. GCP External HTTP Load Balancer for API Gateway
 resource "google_compute_region_network_endpoint_group" "api_gateway_neg" {
+  provider              = google-beta
   name                  = "api-gateway-neg"
   network_endpoint_type = "SERVERLESS"
   region                = var.region
@@ -223,6 +224,7 @@ resource "google_compute_region_network_endpoint_group" "api_gateway_neg" {
 }
 
 resource "google_compute_backend_service" "api_gateway_backend" {
+  provider    = google-beta
   name        = "api-gateway-backend"
   protocol    = "HTTP"
   port_name   = "http"
@@ -235,16 +237,19 @@ resource "google_compute_backend_service" "api_gateway_backend" {
 }
 
 resource "google_compute_url_map" "api_gateway_url_map" {
+  provider        = google-beta
   name            = "api-gateway-url-map"
   default_service = google_compute_backend_service.api_gateway_backend.id
 }
 
 resource "google_compute_target_http_proxy" "api_gateway_http_proxy" {
-  name    = "api-gateway-http-proxy"
-  url_map = google_compute_url_map.api_gateway_url_map.id
+  provider = google-beta
+  name     = "api-gateway-http-proxy"
+  url_map  = google_compute_url_map.api_gateway_url_map.id
 }
 
 resource "google_compute_global_forwarding_rule" "api_gateway_forwarding_rule" {
+  provider              = google-beta
   name                  = "api-gateway-forwarding-rule"
   target                = google_compute_target_http_proxy.api_gateway_http_proxy.id
   port_range            = "80"
