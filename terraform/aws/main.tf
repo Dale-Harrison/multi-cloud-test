@@ -245,6 +245,62 @@ output "api_gateway_url" {
   value = aws_apigatewayv2_api.http_api.api_endpoint
 }
 
+# 9. CloudFront Distribution
+resource "aws_cloudfront_distribution" "api_cdn" {
+  origin {
+    domain_name = replace(aws_apigatewayv2_api.http_api.api_endpoint, "/^https?:\\/\\//", "")
+    origin_id   = "APIGatewayOrigin"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "CloudFront for Multi-Cloud API Gateway"
+  default_root_object = ""
+
+  default_cache_behavior {
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "APIGatewayOrigin"
+
+    forwarded_values {
+      query_string = true
+      headers      = ["*"]
+
+      cookies {
+        forward = "all"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 0
+    max_ttl                = 0
+  }
+
+  price_class = "PriceClass_100"
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+}
+
+output "cloudfront_url" {
+  value = "https://${aws_cloudfront_distribution.api_cdn.domain_name}"
+}
+
 resource "aws_sqs_queue" "hello_queue" {
   name = "hello-queue"
 }
