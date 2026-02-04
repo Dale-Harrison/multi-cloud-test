@@ -19,6 +19,7 @@ graph TD
         Hello_AWS[ECS Fargate: spring-boot-hello]
         SQS[AWS SQS: hello-queue]
         Worker_AWS[ECS Fargate: spring-boot-worker]
+        REPLAY[AWS SQS: replay-queue]
     end
 
     subgraph "GCP (us-central1)"
@@ -36,6 +37,7 @@ graph TD
     ALB --> Hello_AWS
     Hello_AWS --> SQS
     SQS --> Worker_AWS
+    Worker_AWS --> REPLAY
 
     %% GCP Flow
     User --> GCLB
@@ -43,6 +45,7 @@ graph TD
     APIGW_GCP --> Hello_GCP
     Hello_GCP --> PubSub
     PubSub --> Worker_GCP
+    Worker_GCP --> REPLAY
 
     %% Styling
     style CF fill:#ff9900,stroke:#232f3e,color:#fff
@@ -50,6 +53,7 @@ graph TD
     style ALB fill:#ff9900,stroke:#232f3e,color:#fff
     style Hello_AWS fill:#ff9900,stroke:#232f3e,color:#fff
     style Worker_AWS fill:#ff9900,stroke:#232f3e,color:#fff
+    style REPLAY fill:#ff9900,stroke:#232f3e,color:#fff
     
     style GCLB fill:#4285F4,stroke:#34A853,color:#fff
     style APIGW_GCP fill:#4285F4,stroke:#34A853,color:#fff
