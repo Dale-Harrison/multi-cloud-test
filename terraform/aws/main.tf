@@ -34,9 +34,18 @@ resource "aws_vpc" "dr_vpc" {
 resource "aws_subnet" "dr_subnet" {
   vpc_id            = aws_vpc.dr_vpc.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = "${var.aws_region}a"
   tags = {
     Name = "spring-boot-dr-subnet"
+  }
+}
+
+resource "aws_subnet" "dr_subnet_2" {
+  vpc_id            = aws_vpc.dr_vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "${var.aws_region}b"
+  tags = {
+    Name = "spring-boot-dr-subnet-2"
   }
 }
 
@@ -57,10 +66,22 @@ resource "aws_route_table_association" "dr_rta" {
   route_table_id = aws_route_table.dr_rt.id
 }
 
+resource "aws_route_table_association" "dr_rta_2" {
+  subnet_id      = aws_subnet.dr_subnet_2.id
+  route_table_id = aws_route_table.dr_rt.id
+}
+
 resource "aws_security_group" "dr_sg" {
   name        = "spring-boot-dr-sg"
   description = "Allow HTTP traffic"
   vpc_id      = aws_vpc.dr_vpc.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   ingress {
     from_port   = 8080
@@ -180,6 +201,38 @@ resource "aws_iam_role_policy_attachment" "ecs_task_sqs_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
+resource "aws_lb" "hello_lb" {
+  name               = "hello-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.dr_sg.id]
+  subnets            = [aws_subnet.dr_subnet.id, aws_subnet.dr_subnet_2.id]
+}
+
+resource "aws_lb_target_group" "hello_tg" {
+  name        = "hello-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.dr_vpc.id
+  target_type = "ip"
+
+  health_check {
+    path = "/"
+    port = "8080"
+  }
+}
+
+resource "aws_lb_listener" "hello_listener" {
+  load_balancer_arn = aws_lb.hello_lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.hello_tg.arn
+  }
+}
+
 # 6. ECS Service (Fargate)
 resource "aws_ecs_service" "app_service" {
   name            = "spring-boot-hello-service"
@@ -191,6 +244,12 @@ resource "aws_ecs_service" "app_service" {
     weight            = 100
   }
 
+  load_balancer {
+    target_group_arn = aws_lb_target_group.hello_tg.arn
+    container_name   = "spring-boot-hello"
+    container_port   = 8080
+  }
+
   deployment_circuit_breaker {
     enable   = true
     rollback = true
@@ -200,7 +259,7 @@ resource "aws_ecs_service" "app_service" {
   deployment_minimum_healthy_percent = 100
 
   network_configuration {
-    subnets          = [aws_subnet.dr_subnet.id]
+    subnets          = [aws_subnet.dr_subnet.id, aws_subnet.dr_subnet_2.id]
     security_groups  = [aws_security_group.dr_sg.id]
     assign_public_ip = true
   }
@@ -225,8 +284,7 @@ resource "aws_apigatewayv2_integration" "app_integration" {
   api_id           = aws_apigatewayv2_api.http_api.id
   integration_type = "HTTP_PROXY"
   integration_method = "ANY"
-  # This would normally be the DNS of an ALB or the internal IP via VPC Link
-  integration_uri    = "http://example.com" # Placeholder
+  integration_uri    = "http://${aws_lb.hello_lb.dns_name}"
 }
 
 resource "aws_apigatewayv2_route" "default_route" {
