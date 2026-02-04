@@ -206,11 +206,7 @@ resource "aws_iam_role_policy" "ecs_task_sqs_policy" {
       {
         Effect = "Allow"
         Action = [
-          "sqs:SendMessage",
-          "sqs:ReceiveMessage",
-          "sqs:DeleteMessage",
-          "sqs:GetQueueAttributes",
-          "sqs:GetQueueUrl"
+          "sqs:*"
         ]
         Resource = [
           aws_sqs_queue.hello_queue.arn,
@@ -335,7 +331,7 @@ resource "aws_apigatewayv2_integration" "app_integration" {
   api_id           = aws_apigatewayv2_api.http_api.id
   integration_type = "HTTP_PROXY"
   integration_method = "ANY"
-  integration_uri    = "http://${aws_lb.hello_lb.dns_name}"
+  integration_uri    = "http://${aws_lb.hello_lb.dns_name}/"
 
   request_parameters = {
     "overwrite:header.host" = aws_lb.hello_lb.dns_name

@@ -148,6 +148,19 @@ resource "google_cloud_run_v2_service" "worker" {
         name  = "AWS_REGION"
         value = var.aws_region
       }
+      # Spring specific properties for SQS auto-configuration on GCP
+      env {
+        name  = "SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY"
+        value = var.aws_access_key_id
+      }
+      env {
+        name  = "SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY"
+        value = var.aws_secret_access_key
+      }
+      env {
+        name  = "SPRING_CLOUD_AWS_REGION_STATIC"
+        value = var.aws_region
+      }
       ports {
         container_port = 8080
       }
