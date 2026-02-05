@@ -14,8 +14,6 @@ paths:
       operationId: "home"
       x-google-backend:
         address: "${backend_url}"
-      security:
-        - auth0: []
       responses:
         200:
           description: "OK"
@@ -32,8 +30,6 @@ paths:
           type: string
       x-google-backend:
         address: "${backend_url}/publish"
-      security:
-        - auth0: []
       responses:
         200:
           description: "OK"
