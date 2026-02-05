@@ -12,6 +12,8 @@ phases:
       - terraform --version
   pre_build:
     commands:
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
       - echo "Entering AWS Terraform directory..."
       - cd terraform/aws
       - echo "Initializing Terraform..."
@@ -25,8 +27,6 @@ phases:
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 177633253446.dkr.ecr.us-east-1.amazonaws.com
       - REPOSITORY_URI=177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-hello
       - WORKER_REPOSITORY_URI=177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-worker
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:=latest}
   build:
     commands:
       - echo "Building Docker image..."
