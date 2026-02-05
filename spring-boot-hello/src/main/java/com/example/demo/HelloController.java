@@ -18,7 +18,10 @@ public class HelloController {
 
     @GetMapping("/")
     public String home() {
-        return "Welcome to the Multi-Cloud Spring Boot App! Use /publish?message=... to send a message.";
+        String sha = System.getenv("COMMIT_SHA");
+        return String.format(
+                "Welcome to the Multi-Cloud Spring Boot App! [Commit: %s] Use /publish?message=... to send a message.",
+                sha);
     }
 
     @GetMapping("/publish")
