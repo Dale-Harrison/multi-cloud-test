@@ -338,16 +338,32 @@ resource "aws_apigatewayv2_integration" "app_integration" {
   }
 }
 
+resource "aws_apigatewayv2_authorizer" "auth0" {
+  api_id           = aws_apigatewayv2_api.http_api.id
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+  name             = "auth0-authorizer"
+
+  jwt_configuration {
+    audience = ["https://dev-dx0ii0p33yqw4z5c.us.auth0.com/api/v2/"]
+    issuer   = "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/"
+  }
+}
+
 resource "aws_apigatewayv2_route" "default_route" {
-  api_id    = aws_apigatewayv2_api.http_api.id
-  route_key = "ANY /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+  api_id             = aws_apigatewayv2_api.http_api.id
+  route_key          = "ANY /{proxy+}"
+  target             = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.auth0.id
 }
 
 resource "aws_apigatewayv2_route" "root_route" {
-  api_id    = aws_apigatewayv2_api.http_api.id
-  route_key = "ANY /"
-  target    = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+  api_id             = aws_apigatewayv2_api.http_api.id
+  route_key          = "ANY /"
+  target             = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.auth0.id
 }
 
 output "api_gateway_url" {
