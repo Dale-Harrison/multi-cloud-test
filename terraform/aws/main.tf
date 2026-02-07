@@ -264,7 +264,7 @@ resource "aws_lb_target_group" "hello_tg" {
   target_type = "ip"
 
   health_check {
-    path = "/"
+    path = "/actuator/health"
     port = "8080"
   }
 }
