@@ -23,6 +23,9 @@ public class FirestorePaymentRepository implements PaymentRepository {
     @Override
     public void save(PaymentRequest paymentRequest) {
         String transactionId = UUID.randomUUID().toString();
+        if (transactionId == null) {
+            throw new IllegalStateException("UUID cannot be null");
+        }
         Map<String, Object> data = new HashMap<>();
         data.put("transactionId", transactionId);
         data.put("amount", paymentRequest.getAmount());
