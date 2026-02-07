@@ -26,7 +26,7 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error", "/favicon.ico").permitAll()
+                        .requestMatchers("/error", "/favicon.ico", "/api/payment").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
