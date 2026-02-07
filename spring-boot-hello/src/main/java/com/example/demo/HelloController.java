@@ -16,14 +16,6 @@ public class HelloController {
         this.messagePublisher = messagePublisher;
     }
 
-    @GetMapping("/")
-    public String home() {
-        String sha = System.getenv("COMMIT_SHA");
-        return String.format(
-                "Welcome to the Multi-Cloud Spring Boot App! [Commit: %s] Use /publish?message=... to send a message.",
-                sha);
-    }
-
     @GetMapping("/publish")
     public String publish(@RequestParam(defaultValue = "Default message") String message) {
         String env = (System.getenv("AWS_EXECUTION_ENV") != null ? "AWS" : "GCP");
