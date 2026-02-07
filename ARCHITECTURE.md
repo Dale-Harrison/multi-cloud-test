@@ -8,6 +8,10 @@ The application is deployed across both **AWS** and **GCP**, utilizing managed s
 
 ```mermaid
 graph TD
+    subgraph "Identity Provider"
+        Auth0[Auth0]
+    end
+
     subgraph "External Traffic"
         User((User/Client))
     end
@@ -30,24 +34,31 @@ graph TD
         Worker_GCP[Cloud Run: spring-boot-worker]
     end
 
+    %% Auth Flow
+    User -- 1. Login --> Auth0
+    Auth0 -- 2. JWT --> User
+    User -- 3. Request + JWT --> CF
+    User -- 3. Request + JWT --> GCLB
+
     %% AWS Flow
-    User --> CF
     CF --> APIGW_AWS
     APIGW_AWS --> ALB
     ALB --> Hello_AWS
+    Hello_AWS -. Validate JWT .-> Auth0
     Hello_AWS --> SQS
     SQS --> Worker_AWS
     Worker_AWS --> REPLAY
 
     %% GCP Flow
-    User --> GCLB
     GCLB --> APIGW_GCP
     APIGW_GCP --> Hello_GCP
+    Hello_GCP -. Validate JWT .-> Auth0
     Hello_GCP --> PubSub
     PubSub --> Worker_GCP
     Worker_GCP --> REPLAY
 
     %% Styling
+    style Auth0 fill:#EB5424,stroke:#333,color:#fff
     style CF fill:#ff9900,stroke:#232f3e,color:#fff
     style APIGW_AWS fill:#ff9900,stroke:#232f3e,color:#fff
     style ALB fill:#ff9900,stroke:#232f3e,color:#fff
@@ -62,6 +73,14 @@ graph TD
 ```
 
 ## Component Details
+
+## Security & Authentication
+
+Access to the application is secured using **OAuth2 / OIDC** with **Auth0** as the identity provider.
+
+-   **Authentication**: Users authenticate against Auth0 and receive a JWT.
+-   **Authorization**: The JWT is passed in the `Authorization` header (Bearer token) to the application.
+-   **Validation**: Each service (`spring-boot-hello`) validates the JWT signature against Auth0's JWKS endpoint.
 
 ### Edge Layers
 - **AWS CloudFront**: Provides a global CDN and edge termination. Configured with a dedicated ALB backend to ensure stable routing to ECS.
