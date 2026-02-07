@@ -35,12 +35,33 @@ paths:
           description: "OK"
           schema:
             type: "string"
+  /api/payment:
+    post:
+      summary: "Process payment"
+      operationId: "processPayment"
+      consumes:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              amount:
+                type: "number"
+              currency:
+                type: "string"
+              sourceAccount:
+                type: "string"
+              destinationAccount:
+                type: "string"
+      x-google-backend:
+        address: "${backend_url}/api/payment"
+      responses:
+        200:
+          description: "Payment processed"
+          schema:
+            type: "string"
 
-securityDefinitions:
-  auth0:
-    authorizationUrl: ""
-    flow: "implicit"
-    type: "oauth2"
-    x-google-issuer: "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/"
-    x-google-jwks_uri: "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/.well-known/jwks.json"
-    x-google-audiences: "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/api/v2/"
+
