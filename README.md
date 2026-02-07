@@ -8,6 +8,10 @@ The system consists of a "Hello" publisher service and a "Worker" consumer servi
 
 ```mermaid
 graph TD
+    subgraph "Identity Provider"
+        Auth0[Auth0]
+    end
+
     subgraph "External Traffic"
         User((User/Client))
     end
@@ -30,24 +34,31 @@ graph TD
         Worker_GCP[Cloud Run: spring-boot-worker]
     end
 
+    %% Auth Flow
+    User -- 1. Login --> Auth0
+    Auth0 -- 2. JWT --> User
+    User -- 3. Request + JWT --> CF
+    User -- 3. Request + JWT --> GCLB
+
     %% AWS Flow
-    User --> CF
     CF --> APIGW_AWS
     APIGW_AWS --> ALB
     ALB --> Hello_AWS
+    Hello_AWS -. Validate JWT .-> Auth0
     Hello_AWS --> SQS
     SQS --> Worker_AWS
     Worker_AWS --> REPLAY
 
     %% GCP Flow
-    User --> GCLB
     GCLB --> APIGW_GCP
     APIGW_GCP --> Hello_GCP
+    Hello_GCP -. Validate JWT .-> Auth0
     Hello_GCP --> PubSub
     PubSub --> Worker_GCP
     Worker_GCP --> REPLAY
 
     %% Styling
+    style Auth0 fill:#EB5424,stroke:#333,color:#fff
     style CF fill:#ff9900,stroke:#232f3e,color:#fff
     style APIGW_AWS fill:#ff9900,stroke:#232f3e,color:#fff
     style ALB fill:#ff9900,stroke:#232f3e,color:#fff
@@ -73,9 +84,11 @@ graph TD
     -   **AWS**: Uses CodeBuild with `buildspec.yml` to build Docker images and apply Terraform.
     -   **GCP**: Uses Cloud Build with `cloudbuild.yaml` for automated container deployments.
 -   **Resiliency**: 
-    -   GCP Workers use "Always Allocated CPU" to minimize message processing latency.
     -   AWS services use deployment circuit breakers for safe rollouts.
     -   `COMMIT_SHA` deployment logic ensures fresh code is always forced into production.
+-   **Secure Identity**:
+    -   Integrated with **Auth0** for OAuth2/OIDC authentication.
+    -   Services validate JWT tokens against Auth0 JWKS.
 
 ## Project Structure
 
