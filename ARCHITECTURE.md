@@ -24,6 +24,7 @@ graph TD
         SQS[AWS SQS: hello-queue]
         Worker_AWS[ECS Fargate: spring-boot-worker]
         REPLAY[AWS SQS: replay-queue]
+        DynamoDB[(AWS DynamoDB: payments)]
     end
 
     subgraph "GCP (us-central1)"
@@ -32,6 +33,7 @@ graph TD
         Hello_GCP[Cloud Run: spring-boot-hello]
         PubSub[GCP Pub/Sub: hello-topic]
         Worker_GCP[Cloud Run: spring-boot-worker]
+        Firestore[(GCP Firestore: payments)]
     end
 
     %% Auth Flow
@@ -46,6 +48,7 @@ graph TD
     ALB --> Hello_AWS
     Hello_AWS -. Validate JWT .-> Auth0
     Hello_AWS --> SQS
+    Hello_AWS --> DynamoDB
     SQS --> Worker_AWS
     Worker_AWS --> REPLAY
 
@@ -54,6 +57,7 @@ graph TD
     APIGW_GCP --> Hello_GCP
     Hello_GCP -. Validate JWT .-> Auth0
     Hello_GCP --> PubSub
+    Hello_GCP --> Firestore
     PubSub --> Worker_GCP
     Worker_GCP --> REPLAY
 
@@ -65,11 +69,13 @@ graph TD
     style Hello_AWS fill:#ff9900,stroke:#232f3e,color:#fff
     style Worker_AWS fill:#ff9900,stroke:#232f3e,color:#fff
     style REPLAY fill:#ff9900,stroke:#232f3e,color:#fff
+    style DynamoDB fill:#ff9900,stroke:#232f3e,color:#fff
     
     style GCLB fill:#4285F4,stroke:#34A853,color:#fff
     style APIGW_GCP fill:#4285F4,stroke:#34A853,color:#fff
     style Hello_GCP fill:#4285F4,stroke:#34A853,color:#fff
     style Worker_GCP fill:#4285F4,stroke:#34A853,color:#fff
+    style Firestore fill:#4285F4,stroke:#34A853,color:#fff
 ```
 
 ## Component Details
@@ -91,7 +97,10 @@ Access to the application is secured using **OAuth2 / OIDC** with **Auth0** as t
 - **GCP Cloud Gateway**: Manages API authentication and routing using an OpenAPI 2.0 definition, forwarding requests to Cloud Run.
 
 ### Compute & Messaging
-- **spring-boot-hello**: The front-end service that accepts HTTP requests and publishes messages to the respective cloud messaging queues.
+- **spring-boot-hello**: The front-end service that accepts HTTP requests. It utilizes a `PaymentRepository` to persist transaction details to a cloud-native NoSQL database before publishing events to the respective cloud messaging queues.
 - **spring-boot-worker**: The back-end processor that consumes messages and performs asynchronous tasks. Now integrated with a central replay service.
+- **Persistence Layer**: Implements the Repository pattern with profile-specific drivers:
+    - **AWS**: `DynamoDbPaymentRepository` using Amazon DynamoDB.
+    - **GCP**: `FirestorePaymentRepository` using Google Cloud Firestore.
 - **SQS / PubSub**: Durable message brokers ensuring reliable communication between services.
 - **AWS SQS Replay Queue**: A centralized archive that captures a copy of all messages processed by workers in both AWS and GCP.
