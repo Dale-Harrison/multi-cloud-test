@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             background-color: #f0f2f5;
             margin: 0;
         }
+
         .container {
             background: white;
             padding: 2rem;
@@ -22,28 +24,35 @@
             width: 100%;
             max-width: 400px;
         }
+
         h2 {
             margin-top: 0;
             color: #1a1a1a;
             text-align: center;
         }
+
         .form-group {
             margin-bottom: 1rem;
         }
+
         label {
             display: block;
             margin-bottom: 0.5rem;
             color: #4a4a4a;
             font-size: 0.9rem;
         }
-        input, select {
+
+        input,
+        select {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 1rem;
-            box-sizing: border-box; /* Ensures padding doesn't affect width */
+            box-sizing: border-box;
+            /* Ensures padding doesn't affect width */
         }
+
         button {
             width: 100%;
             padding: 0.75rem;
@@ -55,9 +64,11 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
+
         button:hover {
             background-color: #0051a2;
         }
+
         #response {
             margin-top: 1rem;
             padding: 1rem;
@@ -67,8 +78,10 @@
             color: #047857;
             display: none;
             font-size: 0.9rem;
-            white-space: pre-wrap; /* Preserves JSON formatting */
+            white-space: pre-wrap;
+            /* Preserves JSON formatting */
         }
+
         .env-badge {
             display: inline-block;
             padding: 0.25rem 0.5rem;
@@ -80,48 +93,67 @@
             width: 100%;
             box-sizing: border-box;
         }
-        .env-aws { background-color: #ff9900; color: white; }
-        .env-gcp { background-color: #4285F4; color: white; }
-        .env-local { background-color: #333; color: white; }
+
+        .env-aws {
+            background-color: #ff9900;
+            color: white;
+        }
+
+        .env-gcp {
+            background-color: #4285F4;
+            color: white;
+        }
+
+        .env-local {
+            background-color: #333;
+            color: white;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div id="env-badge" class="env-badge env-local">Loading Environment...</div>
-    <h2>Initiate Payment</h2>
-    <form id="paymentForm">
-        <div class="form-group">
-            <label for="amount">Amount</label>
-            <input type="number" id="amount" name="amount" step="0.01" required placeholder="0.00">
+    <div class="container">
+        <div id="env-badge" class="env-badge env-local">Loading Environment...</div>
+        <div style="text-align: right; margin-bottom: 1rem;">
+            <form action="/logout" method="post">
+                <button type="submit"
+                    style="width: auto; padding: 0.5rem 1rem; background-color: #ef4444;">Logout</button>
+            </form>
         </div>
-        
-        <div class="form-group">
-            <label for="currency">Currency</label>
-            <select id="currency" name="currency">
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-            </select>
-        </div>
+        <h2>Initiate Payment</h2>
+        <form id="paymentForm">
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" name="amount" step="0.01" required placeholder="0.00">
+            </div>
 
-        <div class="form-group">
-            <label for="sourceAccount">Source Account</label>
-            <input type="text" id="sourceAccount" name="sourceAccount" value="src_12345" required>
-        </div>
+            <div class="form-group">
+                <label for="currency">Currency</label>
+                <select id="currency" name="currency">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label for="destinationAccount">Destination Account</label>
-            <input type="text" id="destinationAccount" name="destinationAccount" value="dest_67890" required>
-        </div>
+            <div class="form-group">
+                <label for="sourceAccount">Source Account</label>
+                <input type="text" id="sourceAccount" name="sourceAccount" value="src_12345" required>
+            </div>
 
-        <button type="submit">Send Payment</button>
-    </form>
+            <div class="form-group">
+                <label for="destinationAccount">Destination Account</label>
+                <input type="text" id="destinationAccount" name="destinationAccount" value="dest_67890" required>
+            </div>
 
-    <div id="response"></div>
-</div>
+            <button type="submit">Send Payment</button>
+        </form>
 
-<script>
+        <div id="response"></div>
+    </div>
+
+    <script>
     // Simple environment detection based on URL
     const badge = document.getElementById('env-badge');
     if (window.location.hostname.includes('cloudfront')) {
@@ -183,7 +215,8 @@
             button.textContent = originalText;
         }
     });
-</script>
+    </script>
 
 </body>
+
 </html>

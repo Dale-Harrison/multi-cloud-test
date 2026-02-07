@@ -82,6 +82,10 @@ resource "google_pubsub_subscription_iam_binding" "subscription_binding" {
   ]
 }
 
+
+
+
+
 # Using hardcoded default compute service account to avoid data source permission errors in Cloud Build
 
 # 2. Artifact Registry Repository
@@ -284,3 +288,4 @@ resource "google_compute_global_forwarding_rule" "api_gateway_forwarding_rule" {
 output "load_balancer_ip" {
   value = google_compute_global_forwarding_rule.api_gateway_forwarding_rule.ip_address
 }
+

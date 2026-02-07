@@ -64,6 +64,7 @@ steps:
       terraform apply -auto-approve
 
 substitutions:
+
   _TF_VAR_PROJECT_ID: "REPLACE_ME"
   _TF_VAR_COMPUTE_SERVICE_ACCOUNT: "REPLACE_ME"
   _TF_VAR_REGION: "us-central1"

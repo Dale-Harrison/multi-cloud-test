@@ -1,17 +1,19 @@
 package com.example.demo;
 
 import com.example.demo.dto.PaymentRequest;
+import com.example.demo.repository.PaymentRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,53 +23,42 @@ import java.util.UUID;
 public class PaymentController {
 
     private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
+
     private final MessagePublisher messagePublisher;
     private final ObjectMapper objectMapper;
+    private final PaymentRepository paymentRepository;
 
-    public PaymentController(MessagePublisher messagePublisher, ObjectMapper objectMapper) {
+    @Value("${spring.profiles.active:local}")
+    private String activeProfile;
+
+    public PaymentController(MessagePublisher messagePublisher, ObjectMapper objectMapper,
+            PaymentRepository paymentRepository) {
         this.messagePublisher = messagePublisher;
         this.objectMapper = objectMapper;
+        this.paymentRepository = paymentRepository;
     }
 
     @PostMapping
     public ResponseEntity<String> processPayment(@RequestBody PaymentRequest paymentRequest) {
         try {
-            String eventId = UUID.randomUUID().toString();
-            String timestamp = Instant.now().toString();
+            // Save to Database (DynamoDB or Firestore based on profile)
+            paymentRepository.save(paymentRequest);
 
-            Map<String, Object> message = new HashMap<>();
-            message.put("eventId", eventId);
-            message.put("eventType", "PAYMENT_INITIATED");
-            message.put("timestamp", timestamp);
-            message.put("payload", paymentRequest);
-            message.put("version", "1.0");
-
-            String jsonMessage = objectMapper.writeValueAsString(message);
-
-            // Prefix specifically for cross-cloud visibility if needed, but the structure
-            // is JSON
-            // Keeping the prefix helps distinguish environment in logs if that's desired,
-            // but the requirement was "dummy payment using the data structure".
-            // Let's wrap it in the environment prefix to be consistent with existing
-            // logging patterns
-            // or just send the raw JSON. The user prompt said "message structure that
-            // represents a payment",
-            // implying the whole thing is the message.
-            // However, existing HelloController adds [AWS] prefix.
-            // Let's stick to the JSON structure as the primary message content,
             // but we might want to preserve the environment indicator.
             // Actually, the requirement says "the worker service should log the payment
-            // request".
-            // The worker logs whatever it receives.
-            // Let's prepend the environment tag to the JSON string so we know where it came
-            // from,
-            // consistent with HelloController.
+            Map<String, Object> paymentEvent = new HashMap<>();
+            paymentEvent.put("eventId", UUID.randomUUID().toString());
+            paymentEvent.put("eventType", "PAYMENT_INITIATED");
+            paymentEvent.put("timestamp", LocalDateTime.now().toString());
+            paymentEvent.put("data", paymentRequest);
+            paymentEvent.put("source", activeProfile.contains("aws") ? "AWS-Fargate" : "GCP-CloudRun");
 
-            String env = (System.getenv("AWS_EXECUTION_ENV") != null ? "AWS" : "GCP");
-            String finalMsg = String.format("[%s] %s", env, jsonMessage);
+            String jsonMessage = objectMapper.writeValueAsString(paymentEvent);
 
-            logger.info("Publishing payment event: {}", finalMsg);
-            messagePublisher.publish(finalMsg);
+            logger.info("Processing payment request: {}", jsonMessage);
+
+            // Publish to Message Queue (SQS or Pub/Sub)
+            messagePublisher.publish(jsonMessage);
 
             return ResponseEntity.ok(jsonMessage);
         } catch (JsonProcessingException e) {

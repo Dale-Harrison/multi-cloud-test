@@ -206,11 +206,17 @@ resource "aws_iam_role_policy" "ecs_task_sqs_policy" {
       {
         Effect = "Allow"
         Action = [
-          "sqs:*"
+          "sqs:*",
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:Scan",
+          "dynamodb:Query",
+          "dynamodb:UpdateItem"
         ]
         Resource = [
           aws_sqs_queue.hello_queue.arn,
-          aws_sqs_queue.replay_queue.arn
+          aws_sqs_queue.replay_queue.arn,
+          aws_dynamodb_table.payments.arn
         ]
       }
     ]
@@ -447,6 +453,17 @@ resource "aws_sqs_queue" "hello_queue" {
 
 resource "aws_sqs_queue" "replay_queue" {
   name = "replay-queue"
+}
+
+resource "aws_dynamodb_table" "payments" {
+  name           = "payments"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "transactionId"
+
+  attribute {
+    name = "transactionId"
+    type = "S"
+  }
 }
 
 resource "aws_cloudwatch_log_group" "hello_log_group" {
