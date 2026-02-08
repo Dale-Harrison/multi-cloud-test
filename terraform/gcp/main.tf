@@ -127,7 +127,7 @@ resource "google_cloud_run_v2_service" "default" {
       }
       env {
         name  = "AWS_REGION"
-        value = var.aws_region
+        value = "us-east-1"
       }
       # Spring specific properties for DynamoDB replication on GCP
       env {
@@ -140,7 +140,7 @@ resource "google_cloud_run_v2_service" "default" {
       }
       env {
         name  = "SPRING_CLOUD_AWS_REGION_STATIC"
-        value = var.aws_region
+        value = "us-east-1"
       }
     }
     scaling {
