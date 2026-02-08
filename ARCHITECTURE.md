@@ -24,7 +24,7 @@ graph TD
         SQS[AWS SQS: hello-queue]
         Worker_AWS[ECS Fargate: spring-boot-worker]
         REPLAY[AWS SQS: replay-queue]
-        DynamoDB[(AWS DynamoDB: payments)]
+        DynamoDB[(AWS DynamoDB: payments, balances)]
     end
 
     subgraph "GCP (us-central1)"
@@ -33,7 +33,7 @@ graph TD
         Hello_GCP[Cloud Run: spring-boot-hello]
         PubSub[GCP Pub/Sub: hello-topic]
         Worker_GCP[Cloud Run: spring-boot-worker]
-        Firestore[(GCP Firestore: payments)]
+        Firestore[(GCP Firestore: payments, balances)]
     end
 
     %% Auth Flow
@@ -58,6 +58,7 @@ graph TD
     Hello_GCP -. Validate JWT .-> Auth0
     Hello_GCP --> PubSub
     Hello_GCP --> Firestore
+    Hello_GCP -- Replication (Cross-Cloud) --> DynamoDB
     PubSub --> Worker_GCP
     Worker_GCP --> REPLAY
 
@@ -102,5 +103,6 @@ Access to the application is secured using **OAuth2 / OIDC** with **Auth0** as t
 - **Persistence Layer**: Implements the Repository pattern with profile-specific drivers:
     - **AWS**: `DynamoDbPaymentRepository` using Amazon DynamoDB.
     - **GCP**: `FirestorePaymentRepository` using Google Cloud Firestore.
+    - **Cross-Cloud Replication**: Payments processed on GCP are continuously replicated to AWS DynamoDB (`us-east-1`) to ensure data durability and consistency across clouds.
 - **SQS / PubSub**: Durable message brokers ensuring reliable communication between services.
 - **AWS SQS Replay Queue**: A centralized archive that captures a copy of all messages processed by workers in both AWS and GCP.
