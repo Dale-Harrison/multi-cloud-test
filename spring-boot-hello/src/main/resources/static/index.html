@@ -115,6 +115,12 @@
 
     <div class="container">
         <div id="env-badge" class="env-badge env-local">Loading Environment...</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div id="balance-display" style="font-weight: bold; font-size: 1.2rem; color: #0070f3;">Balance: Loading...
+            </div>
+            <button id="addFundsBtn" type="button"
+                style="width: auto; padding: 0.5rem 1rem; background-color: #10b981;">Add $100</button>
+        </div>
         <div style="text-align: right; margin-bottom: 1rem;">
             <form action="/logout" method="post">
                 <button type="submit"
@@ -154,67 +160,100 @@
     </div>
 
     <script>
-    // Simple environment detection based on URL
-    const badge = document.getElementById('env-badge');
-    if (window.location.hostname.includes('cloudfront')) {
-        badge.textContent = 'AWS Environment';
-        badge.className = 'env-badge env-aws';
-    } else if (window.location.hostname.includes('run.app')) {
-        badge.textContent = 'GCP Environment';
-        badge.className = 'env-badge env-gcp';
-    } else {
-        badge.textContent = 'Local Environment';
-        badge.className = 'env-badge env-local';
-    }
+        // Simple environment detection based on URL
+        const badge = document.getElementById('env-badge');
+        if (window.location.hostname.includes('cloudfront')) {
+            badge.textContent = 'AWS Environment';
+            badge.className = 'env-badge env-aws';
+        } else if (window.location.hostname.includes('run.app')) {
+            badge.textContent = 'GCP Environment';
+            badge.className = 'env-badge env-gcp';
+        } else {
+            badge.textContent = 'Local Environment';
+            badge.className = 'env-badge env-local';
+        }
 
-    document.getElementById('paymentForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const button = e.target.querySelector('button');
-        const originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = 'Processing...';
-        
-        const data = {
-            amount: parseFloat(document.getElementById('amount').value),
-            currency: document.getElementById('currency').value,
-            sourceAccount: document.getElementById('sourceAccount').value,
-            destinationAccount: document.getElementById('destinationAccount').value
-        };
+        async function fetchBalance() {
+            try {
+                const response = await fetch('/api/payment/balance');
+                if (response.ok) {
+                    const balance = await response.json();
+                    document.getElementById('balance-display').textContent = `Balance: ${balance.toFixed(2)}`;
+                }
+            } catch (error) {
+                console.error('Error fetching balance:', error);
+            }
+        }
 
-        try {
-            const response = await fetch('/api/payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // CSRF token would be needed here if CSRF protection is enabled and not cookie-based
-                },
-                body: JSON.stringify(data)
-            });
+        // Initial balance fetch
+        fetchBalance();
 
-            if (response.ok) {
-                const result = await response.json();
+        document.getElementById('addFundsBtn').addEventListener('click', async function () {
+            try {
+                const response = await fetch('/api/payment/add-funds', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: 100.00 })
+                });
+                if (response.ok) {
+                    fetchBalance();
+                    alert('Added 100.00 to balance');
+                }
+            } catch (error) {
+                console.error('Error adding funds:', error);
+            }
+        });
+
+        document.getElementById('paymentForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const button = e.target.querySelector('button');
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Processing...';
+
+            const data = {
+                amount: parseFloat(document.getElementById('amount').value),
+                currency: document.getElementById('currency').value,
+                sourceAccount: document.getElementById('sourceAccount').value,
+                destinationAccount: document.getElementById('destinationAccount').value
+            };
+
+            try {
+                const response = await fetch('/api/payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // CSRF token would be needed here if CSRF protection is enabled and not cookie-based
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const responseDiv = document.getElementById('response');
+                    responseDiv.style.display = 'block';
+                    responseDiv.textContent = 'Payment Sent!\n\n' + JSON.stringify(result, null, 2);
+                    responseDiv.style.borderColor = '#10b981';
+                    responseDiv.style.backgroundColor = '#e8fdf5';
+                    responseDiv.style.color = '#047857';
+                    fetchBalance(); // Refresh balance after payment
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Payment failed');
+                }
+            } catch (error) {
                 const responseDiv = document.getElementById('response');
                 responseDiv.style.display = 'block';
-                responseDiv.textContent = 'Payment Sent!\n\n' + JSON.stringify(result, null, 2);
-                responseDiv.style.borderColor = '#10b981';
-                responseDiv.style.backgroundColor = '#e8fdf5';
-                responseDiv.style.color = '#047857';
-            } else {
-                throw new Error('Payment failed');
+                responseDiv.textContent = 'Error: ' + error.message;
+                responseDiv.style.borderColor = '#ef4444';
+                responseDiv.style.backgroundColor = '#fef2f2';
+                responseDiv.style.color = '#b91c1c';
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
             }
-        } catch (error) {
-            const responseDiv = document.getElementById('response');
-            responseDiv.style.display = 'block';
-            responseDiv.textContent = 'Error sending payment. Please try again.';
-            responseDiv.style.borderColor = '#ef4444';
-            responseDiv.style.backgroundColor = '#fef2f2';
-            responseDiv.style.color = '#b91c1c';
-        } finally {
-            button.disabled = false;
-            button.textContent = originalText;
-        }
-    });
+        });
     </script>
 
 </body>

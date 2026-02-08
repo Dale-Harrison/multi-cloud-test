@@ -216,7 +216,8 @@ resource "aws_iam_role_policy" "ecs_task_sqs_policy" {
         Resource = [
           aws_sqs_queue.hello_queue.arn,
           aws_sqs_queue.replay_queue.arn,
-          aws_dynamodb_table.payments.arn
+          aws_dynamodb_table.payments.arn,
+          aws_dynamodb_table.user_balances.arn
         ]
       }
     ]
