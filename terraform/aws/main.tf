@@ -309,6 +309,9 @@ resource "aws_ecs_service" "app_service" {
     rollback = true
   }
 
+  force_new_deployment = true
+
+
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 100
 
