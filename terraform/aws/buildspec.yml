@@ -17,7 +17,7 @@ phases:
       - echo "Entering AWS Terraform directory..."
       - cd terraform/aws
       - echo "Initializing Terraform..."
-      - aws dynamodb scan --table-name multi-cloud-terraform-locks --region eu-west-1
+      - aws dynamodb delete-item --table-name multi-cloud-terraform-locks --key '{"LockID": {"S": "multi-cloud-terraform-state-dh/aws/terraform.tfstate-md5"}}' --region eu-west-1
       - terraform init
       - echo "Running Terraform Plan (AWS)..."
       - # Setting TF_VAR_commit_sha ensures terraform picks it up automatically
