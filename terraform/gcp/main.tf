@@ -117,6 +117,31 @@ resource "google_cloud_run_v2_service" "default" {
         name  = "COMMIT_SHA"
         value = var.commit_sha
       }
+      env {
+        name  = "AWS_ACCESS_KEY_ID"
+        value = var.aws_access_key_id
+      }
+      env {
+        name  = "AWS_SECRET_ACCESS_KEY"
+        value = var.aws_secret_access_key
+      }
+      env {
+        name  = "AWS_REGION"
+        value = var.aws_region
+      }
+      # Spring specific properties for DynamoDB replication on GCP
+      env {
+        name  = "SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY"
+        value = var.aws_access_key_id
+      }
+      env {
+        name  = "SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY"
+        value = var.aws_secret_access_key
+      }
+      env {
+        name  = "SPRING_CLOUD_AWS_REGION_STATIC"
+        value = var.aws_region
+      }
     }
     scaling {
       max_instance_count = 1
