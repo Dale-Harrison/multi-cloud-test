@@ -250,6 +250,15 @@ resource "aws_iam_user_policy" "gcp_worker_sqs_policy" {
         Resource = [
           aws_sqs_queue.replay_queue.arn
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem"
+        ]
+        Resource = [
+          aws_dynamodb_table.payments.arn
+        ]
       }
     ]
   })

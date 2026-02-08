@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.math.BigDecimal;
 
 @Repository
-@Profile("aws")
+@Profile({ "aws", "gcp" })
 public class DynamoDbPaymentRepository implements PaymentRepository {
 
     private final DynamoDbTemplate dynamoDbTemplate;

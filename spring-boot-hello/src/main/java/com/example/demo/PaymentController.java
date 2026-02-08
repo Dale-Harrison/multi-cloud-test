@@ -30,18 +30,50 @@ public class PaymentController {
 
     private final MessagePublisher messagePublisher;
     private final ObjectMapper objectMapper;
-    private final PaymentRepository paymentRepository;
     private final BalanceRepository balanceRepository;
+
+    // Inject specific repositories. We use Optional because they might not be
+    // available in all profiles.
+    // However, with our profile setup:
+    // AWS Profile: DynamoDbPaymentRepository is active. FirestorePaymentRepository
+    // is inactive.
+    // GCP Profile: DynamoDbPaymentRepository is active. FirestorePaymentRepository
+    // is active.
+    private final PaymentRepository dynamoDbPaymentRepository;
+    private final PaymentRepository firestorePaymentRepository;
 
     @Value("${spring.profiles.active:local}")
     private String activeProfile;
 
     public PaymentController(MessagePublisher messagePublisher, ObjectMapper objectMapper,
-            PaymentRepository paymentRepository, BalanceRepository balanceRepository) {
+            BalanceRepository balanceRepository,
+            // Inject all available PaymentRepositories. Since we have multiple of the same
+            // type in GCP profile,
+            // we need to be careful. The cleanest way is to inject by name or qualifier if
+            // we name them,
+            // or just inject the specific implementations if we changed the interface
+            // injection.
+            //
+            // Given we haven't named beans explicitly, Spring uses class name (camelCase).
+            // Let's use @Qualifier or just inject the list and filter?
+            // Actually, simpler: define them as fields and use constructor injection with
+            // @Qualifier if needed,
+            // but since they are different classes, we can't inject by interface unless we
+            // use @Qualifier.
+            //
+            // Let's rely on the fact that we have class-based injection if we cast? No,
+            // that's bad.
+            //
+            // Best approach: Inject the interface with @Qualifier.
+            // Note: If a bean is not active (profile), it won't be in the context.
+            // So we use Optional.
+            @org.springframework.beans.factory.annotation.Qualifier("dynamoDbPaymentRepository") java.util.Optional<PaymentRepository> dynamoDbPaymentRepository,
+            @org.springframework.beans.factory.annotation.Qualifier("firestorePaymentRepository") java.util.Optional<PaymentRepository> firestorePaymentRepository) {
         this.messagePublisher = messagePublisher;
         this.objectMapper = objectMapper;
-        this.paymentRepository = paymentRepository;
         this.balanceRepository = balanceRepository;
+        this.dynamoDbPaymentRepository = dynamoDbPaymentRepository.orElse(null);
+        this.firestorePaymentRepository = firestorePaymentRepository.orElse(null);
     }
 
     @GetMapping("/balance")
@@ -70,9 +102,37 @@ public class PaymentController {
                 return ResponseEntity.badRequest().body("Insufficient balance");
             }
 
-            // Save to Database (DynamoDB or Firestore based on profile)
-            paymentRequest.setSourceAccount(userId); // Override source with authenticated user
-            paymentRepository.save(paymentRequest);
+            paymentRequest.setSourceAccount(userId);
+
+            // Save to Database
+            if (activeProfile.contains("gcp")) {
+                // Primary: Firestore
+                if (firestorePaymentRepository != null) {
+                    firestorePaymentRepository.save(paymentRequest);
+                } else {
+                    logger.warn("Firestore repository not found in GCP profile!");
+                }
+
+                // Replication: DynamoDB
+                if (dynamoDbPaymentRepository != null) {
+                    try {
+                        dynamoDbPaymentRepository.save(paymentRequest);
+                    } catch (Exception e) {
+                        logger.error("Replication to DynamoDB failed", e);
+                        // We do NOT fail the request, as primary write succeeded.
+                    }
+                } else {
+                    logger.warn("DynamoDB repository not found for replication in GCP profile!");
+                }
+            } else {
+                // Default / AWS: DynamoDB
+                if (dynamoDbPaymentRepository != null) {
+                    dynamoDbPaymentRepository.save(paymentRequest);
+                } else {
+                    logger.error("DynamoDB repository not found in AWS profile!");
+                    return ResponseEntity.internalServerError().body("Database unavailable");
+                }
+            }
 
             // but we might want to preserve the environment indicator.
             // Actually, the requirement says "the worker service should log the payment
