@@ -431,6 +431,10 @@ output "cloudfront_url" {
   value = "https://${aws_cloudfront_distribution.api_cdn.domain_name}"
 }
 
+output "cloudfront_distribution_id" {
+  value = aws_cloudfront_distribution.api_cdn.id
+}
+
 output "alb_dns_name" {
   value = aws_lb.hello_lb.dns_name
 }

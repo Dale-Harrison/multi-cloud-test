@@ -50,5 +50,8 @@ phases:
       - cd terraform/aws
       - export TF_VAR_commit_sha=$IMAGE_TAG
       - terraform apply -auto-approve
+      - echo "Invalidating CloudFront Cache..."
+      - DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
+      - aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
       - cd ../..
       - echo Writing image definitions file...
