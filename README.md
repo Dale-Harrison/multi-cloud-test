@@ -24,6 +24,7 @@ graph TD
         SQS[AWS SQS: hello-queue]
         Worker_AWS[ECS Fargate: spring-boot-worker]
         REPLAY[AWS SQS: replay-queue]
+        DynamoDB[(AWS DynamoDB: payments, balances)]
     end
 
     subgraph "GCP (us-central1)"
@@ -32,6 +33,7 @@ graph TD
         Hello_GCP[Cloud Run: spring-boot-hello]
         PubSub[GCP Pub/Sub: hello-topic]
         Worker_GCP[Cloud Run: spring-boot-worker]
+        Firestore[(GCP Firestore: payments, balances)]
     end
 
     %% Auth Flow
@@ -46,6 +48,7 @@ graph TD
     ALB --> Hello_AWS
     Hello_AWS -. Validate JWT .-> Auth0
     Hello_AWS --> SQS
+    Hello_AWS --> DynamoDB
     SQS --> Worker_AWS
     Worker_AWS --> REPLAY
 
@@ -54,6 +57,8 @@ graph TD
     APIGW_GCP --> Hello_GCP
     Hello_GCP -. Validate JWT .-> Auth0
     Hello_GCP --> PubSub
+    Hello_GCP --> Firestore
+    Hello_GCP -- Replication (Cross-Cloud) --> DynamoDB
     PubSub --> Worker_GCP
     Worker_GCP --> REPLAY
 
@@ -65,11 +70,13 @@ graph TD
     style Hello_AWS fill:#ff9900,stroke:#232f3e,color:#fff
     style Worker_AWS fill:#ff9900,stroke:#232f3e,color:#fff
     style REPLAY fill:#ff9900,stroke:#232f3e,color:#fff
+    style DynamoDB fill:#ff9900,stroke:#232f3e,color:#fff
     
     style GCLB fill:#4285F4,stroke:#34A853,color:#fff
     style APIGW_GCP fill:#4285F4,stroke:#34A853,color:#fff
     style Hello_GCP fill:#4285F4,stroke:#34A853,color:#fff
     style Worker_GCP fill:#4285F4,stroke:#34A853,color:#fff
+    style Firestore fill:#4285F4,stroke:#34A853,color:#fff
 ```
 
 ### Edge & Load Balancing
@@ -89,6 +96,8 @@ graph TD
 -   **Secure Identity**:
     -   Integrated with **Auth0** for OAuth2/OIDC authentication.
     -   Services validate JWT tokens against Auth0 JWKS.
+-   **Cross-Cloud Replication**:
+    -   Payments processed on GCP are continuously replicated to AWS DynamoDB to ensure data durability.
 
 ## Project Structure
 
