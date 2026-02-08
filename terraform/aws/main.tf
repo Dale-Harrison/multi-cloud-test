@@ -257,7 +257,8 @@ resource "aws_iam_user_policy" "gcp_worker_sqs_policy" {
           "dynamodb:PutItem"
         ]
         Resource = [
-          aws_dynamodb_table.payments.arn
+          aws_dynamodb_table.payments.arn,
+          aws_dynamodb_table.user_balances.arn
         ]
       }
     ]
