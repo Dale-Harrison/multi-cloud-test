@@ -344,7 +344,7 @@ resource "aws_apigatewayv2_integration" "app_integration" {
   integration_uri    = "http://${aws_lb.hello_lb.dns_name}/"
 
   request_parameters = {
-    "overwrite:header.Host"              = aws_lb.hello_lb.dns_name
+    "overwrite:header.Host"              = "$request.header.Host"
     "append:header.X-Forwarded-Host"     = "$request.header.X-Forwarded-Host"
     "append:header.X-Forwarded-Proto"    = "$request.header.X-Forwarded-Proto"
     "append:header.X-Forwarded-Port"     = "$request.header.X-Forwarded-Port"
