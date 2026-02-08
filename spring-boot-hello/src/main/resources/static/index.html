@@ -81,40 +81,12 @@
             white-space: pre-wrap;
             /* Preserves JSON formatting */
         }
-
-        .env-badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .env-aws {
-            background-color: #ff9900;
-            color: white;
-        }
-
-        .env-gcp {
-            background-color: #4285F4;
-            color: white;
-        }
-
-        .env-local {
-            background-color: #333;
-            color: white;
-        }
     </style>
 </head>
 
 <body>
 
     <div class="container">
-        <div id="env-badge" class="env-badge env-local">Loading Environment...</div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <div id="balance-display" style="font-weight: bold; font-size: 1.2rem; color: #0070f3;">Balance: Loading...
             </div>
@@ -160,19 +132,6 @@
     </div>
 
     <script>
-        // Simple environment detection based on URL
-        const badge = document.getElementById('env-badge');
-        if (window.location.hostname.includes('cloudfront')) {
-            badge.textContent = 'AWS Environment';
-            badge.className = 'env-badge env-aws';
-        } else if (window.location.hostname.includes('run.app')) {
-            badge.textContent = 'GCP Environment';
-            badge.className = 'env-badge env-gcp';
-        } else {
-            badge.textContent = 'Local Environment';
-            badge.className = 'env-badge env-local';
-        }
-
         async function fetchBalance() {
             try {
                 const response = await fetch('/api/payment/balance');
