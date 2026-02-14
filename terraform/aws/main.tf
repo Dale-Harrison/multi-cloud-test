@@ -378,8 +378,21 @@ resource "aws_apigatewayv2_route" "root_route" {
   api_id             = aws_apigatewayv2_api.http_api.id
   route_key          = "ANY /"
   target             = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
-  authorization_type = "JWT"
-  authorizer_id      = aws_apigatewayv2_authorizer.auth0.id
+  authorization_type = "NONE"
+}
+
+resource "aws_apigatewayv2_route" "index_route" {
+  api_id             = aws_apigatewayv2_api.http_api.id
+  route_key          = "ANY /index.html"
+  target             = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+  authorization_type = "NONE"
+}
+
+resource "aws_apigatewayv2_route" "favicon_route" {
+  api_id             = aws_apigatewayv2_api.http_api.id
+  route_key          = "ANY /favicon.ico"
+  target             = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
+  authorization_type = "NONE"
 }
 
 output "api_gateway_url" {

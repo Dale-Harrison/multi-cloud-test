@@ -22,8 +22,28 @@ paths:
       operationId: "home"
       x-google-backend:
         address: "${backend_url}"
-      security:
-        - auth0_jwt: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "string"
+  /index.html:
+    get:
+      summary: "Index page"
+      operationId: "index"
+      x-google-backend:
+        address: "${backend_url}/index.html"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "string"
+  /favicon.ico:
+    get:
+      summary: "Favicon"
+      operationId: "favicon"
+      x-google-backend:
+        address: "${backend_url}/favicon.ico"
       responses:
         200:
           description: "OK"
