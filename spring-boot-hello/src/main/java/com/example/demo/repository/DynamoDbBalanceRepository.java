@@ -4,8 +4,6 @@ import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 import java.math.BigDecimal;
 
@@ -55,26 +53,4 @@ public class DynamoDbBalanceRepository implements BalanceRepository {
         dynamoDbTemplate.save(balance);
     }
 
-    @DynamoDbBean
-    public static class UserBalance {
-        private String userId;
-        private BigDecimal balance;
-
-        @DynamoDbPartitionKey
-        public String getUserId() {
-            return userId;
-        }
-
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
-
-        public BigDecimal getBalance() {
-            return balance;
-        }
-
-        public void setBalance(BigDecimal balance) {
-            this.balance = balance;
-        }
-    }
 }

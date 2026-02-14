@@ -1,26 +1,36 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
+- id: 'build-hello'
+  name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:$COMMIT_SHA', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:latest', './spring-boot-hello']
+  waitFor: ['-']
 
 # Build the Spring Boot Worker container image
-- name: 'gcr.io/cloud-builders/docker'
+- id: 'build-worker'
+  name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:latest', './spring-boot-worker']
+  waitFor: ['-']
 
 # Push the Hello World container image
-- name: 'gcr.io/cloud-builders/docker'
+- id: 'push-hello'
+  name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:$COMMIT_SHA']
-- name: 'gcr.io/cloud-builders/docker'
+  waitFor: ['build-hello']
+
+- id: 'push-hello-latest'
+  name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-hello:latest']
+  waitFor: ['build-hello']
 
 # Push the Worker container image
-- name: 'gcr.io/cloud-builders/docker'
+- id: 'push-worker'
+  name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:$COMMIT_SHA']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:latest']
+  waitFor: ['build-worker']
 
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gcloud'
-  args: ['services', 'enable', 'run.googleapis.com', 'artifactregistry.googleapis.com', 'pubsub.googleapis.com', 'compute.googleapis.com', '--project', '$PROJECT_ID']
+- id: 'push-worker-latest'
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/spring-boot-worker:latest']
+  waitFor: ['build-worker']
 
 - id: 'tf-init'
   name: 'hashicorp/terraform:1.5.7'
@@ -30,6 +40,7 @@ steps:
   - |
       cd terraform/gcp
       terraform init
+  waitFor: ['-']
 
 - id: 'tf-plan'
   name: 'hashicorp/terraform:1.5.7'
@@ -46,6 +57,7 @@ steps:
       export TF_VAR_aws_secret_access_key=${_TF_VAR_AWS_SECRET_ACCESS_KEY}
       export TF_VAR_aws_region=${_TF_VAR_AWS_REGION}
       terraform plan
+  waitFor: ['tf-init']
 
 - id: 'tf-apply'
   name: 'hashicorp/terraform:1.5.7'
@@ -62,6 +74,7 @@ steps:
       export TF_VAR_aws_secret_access_key=${_TF_VAR_AWS_SECRET_ACCESS_KEY}
       export TF_VAR_aws_region=${_TF_VAR_AWS_REGION}
       terraform apply -auto-approve
+  waitFor: ['tf-plan', 'push-hello', 'push-worker', 'push-hello-latest', 'push-worker-latest']
 
 substitutions:
 
