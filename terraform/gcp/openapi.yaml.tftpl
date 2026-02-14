@@ -3,6 +3,14 @@ info:
   title: "Spring Boot Hello API"
   description: "API Gateway for Spring Boot Hello Service - Updated for Redirection"
   version: "1.0.1"
+securityDefinitions:
+  auth0_jwt:
+    authorizationUrl: "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/authorize"
+    flow: "implicit"
+    type: "oauth2"
+    x-google-issuer: "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/"
+    x-google-jwks_uri: "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/.well-known/jwks.json"
+    x-google-audiences: "https://dev-dx0ii0p33yqw4z5c.us.auth0.com/api/v2/"
 schemes:
   - "https"
 produces:
@@ -14,6 +22,8 @@ paths:
       operationId: "home"
       x-google-backend:
         address: "${backend_url}"
+      security:
+        - auth0_jwt: []
       responses:
         200:
           description: "OK"
@@ -30,6 +40,8 @@ paths:
           type: string
       x-google-backend:
         address: "${backend_url}/publish"
+      security:
+        - auth0_jwt: []
       responses:
         200:
           description: "OK"
@@ -58,6 +70,8 @@ paths:
                 type: "string"
       x-google-backend:
         address: "${backend_url}/api/payment"
+      security:
+        - auth0_jwt: []
       responses:
         200:
           description: "Payment processed"

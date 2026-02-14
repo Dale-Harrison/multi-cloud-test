@@ -370,14 +370,16 @@ resource "aws_apigatewayv2_route" "default_route" {
   api_id             = aws_apigatewayv2_api.http_api.id
   route_key          = "ANY /{proxy+}"
   target             = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
-  authorization_type = "NONE"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.auth0.id
 }
 
 resource "aws_apigatewayv2_route" "root_route" {
   api_id             = aws_apigatewayv2_api.http_api.id
   route_key          = "ANY /"
   target             = "integrations/${aws_apigatewayv2_integration.app_integration.id}"
-  authorization_type = "NONE"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.auth0.id
 }
 
 output "api_gateway_url" {
