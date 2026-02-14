@@ -5,7 +5,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import java.math.BigDecimal;
 
 @DynamoDbBean
-public class PaymentRecord {
+public class Payments {
     private String transactionId;
     private BigDecimal amount;
     private String currency;

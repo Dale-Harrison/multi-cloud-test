@@ -5,7 +5,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import java.math.BigDecimal;
 
 @DynamoDbBean
-public class UserBalance {
+public class UserBalances {
     private String userId;
     private BigDecimal balance;
 

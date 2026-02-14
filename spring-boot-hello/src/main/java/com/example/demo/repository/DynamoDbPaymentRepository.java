@@ -19,7 +19,7 @@ public class DynamoDbPaymentRepository implements PaymentRepository {
 
     @Override
     public void save(PaymentRequest paymentRequest) {
-        PaymentRecord record = new PaymentRecord();
+        Payments record = new Payments();
         record.setTransactionId(UUID.randomUUID().toString());
         record.setAmount(paymentRequest.getAmount());
         record.setCurrency(paymentRequest.getCurrency());

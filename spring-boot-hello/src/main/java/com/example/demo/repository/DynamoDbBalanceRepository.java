@@ -19,15 +19,15 @@ public class DynamoDbBalanceRepository implements BalanceRepository {
 
     @Override
     public BigDecimal getBalance(String userId) {
-        UserBalance balance = dynamoDbTemplate.load(Key.builder().partitionValue(userId).build(), UserBalance.class);
+        UserBalances balance = dynamoDbTemplate.load(Key.builder().partitionValue(userId).build(), UserBalances.class);
         return balance != null ? balance.getBalance() : BigDecimal.ZERO;
     }
 
     @Override
     public void deductBalance(String userId, BigDecimal amount) {
-        UserBalance balance = dynamoDbTemplate.load(Key.builder().partitionValue(userId).build(), UserBalance.class);
+        UserBalances balance = dynamoDbTemplate.load(Key.builder().partitionValue(userId).build(), UserBalances.class);
         if (balance == null) {
-            balance = new UserBalance();
+            balance = new UserBalances();
             balance.setUserId(userId);
             balance.setBalance(BigDecimal.ZERO);
         }
@@ -42,9 +42,9 @@ public class DynamoDbBalanceRepository implements BalanceRepository {
 
     @Override
     public void addBalance(String userId, BigDecimal amount) {
-        UserBalance balance = dynamoDbTemplate.load(Key.builder().partitionValue(userId).build(), UserBalance.class);
+        UserBalances balance = dynamoDbTemplate.load(Key.builder().partitionValue(userId).build(), UserBalances.class);
         if (balance == null) {
-            balance = new UserBalance();
+            balance = new UserBalances();
             balance.setUserId(userId);
             balance.setBalance(BigDecimal.ZERO);
         }
