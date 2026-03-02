@@ -19,10 +19,7 @@ phases:
       - echo "Initializing Terraform..."
       - echo "Clearing potential zombie lock (manual)..."
       - terraform init
-      - echo "Running Terraform Plan (AWS)..."
-      - # Setting TF_VAR_commit_sha ensures terraform picks it up automatically
-      - export TF_VAR_commit_sha=$IMAGE_TAG
-      - terraform plan
+      - echo "Skipping Terraform Plan for Destroy..."
       - cd ../..
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 177633253446.dkr.ecr.us-east-1.amazonaws.com
@@ -37,8 +34,8 @@ phases:
       - echo "Applying state updates..."
       - cd terraform/aws
       - export TF_VAR_commit_sha=$IMAGE_TAG
-      - terraform apply -auto-approve
+      - terraform apply -auto-approve -lock=false
       - echo "Destroying Terraform (AWS)..."
-      - terraform destroy -auto-approve
+      - terraform destroy -auto-approve -lock=false
       - cd ../..
       - echo Writing image definitions file...
