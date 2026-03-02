@@ -36,6 +36,12 @@ phases:
       - aws ecr batch-delete-image --repository-name spring-boot-hello --region us-east-1 --image-ids file://hello_images.json || true
       - aws ecr list-images --repository-name spring-boot-worker --region us-east-1 --query 'imageIds[*]' --output json > worker_images.json || echo "[]" > worker_images.json
       - aws ecr batch-delete-image --repository-name spring-boot-worker --region us-east-1 --image-ids file://worker_images.json || true
+      - echo "Cleaning up dangling ALBs and Target Groups..."
+      - ALB_ARNS=$(aws elbv2 describe-load-balancers --region us-east-1 --query 'LoadBalancers[*].LoadBalancerArn' --output text || echo "")
+      - for ARN in $ALB_ARNS; do aws elbv2 delete-load-balancer --region us-east-1 --load-balancer-arn "$ARN" || true; done
+      - sleep 30
+      - TARGET_GROUP_ARNS=$(aws elbv2 describe-target-groups --region us-east-1 --query 'TargetGroups[*].TargetGroupArn' --output text || echo "")
+      - for ARN in $TARGET_GROUP_ARNS; do aws elbv2 delete-target-group --region us-east-1 --target-group-arn "$ARN" || true; done
       - echo "Destroying Terraform (AWS)..."
       - cd terraform/aws
       - export TF_VAR_commit_sha=$IMAGE_TAG
