@@ -42,6 +42,12 @@ phases:
       - sleep 30
       - TARGET_GROUP_ARNS=$(aws elbv2 describe-target-groups --region us-east-1 --query 'TargetGroups[*].TargetGroupArn' --output text || echo "")
       - for ARN in $TARGET_GROUP_ARNS; do aws elbv2 delete-target-group --region us-east-1 --target-group-arn "$ARN" || true; done
+      - echo "Scaling down and deleting ECS services in spring-boot-dr-cluster..."
+      - CLUSTER_NAME="spring-boot-dr-cluster"
+      - SERVICES=$(aws ecs list-services --cluster $CLUSTER_NAME --region us-east-1 --query 'serviceArns[*]' --output text || echo "")
+      - for SERVICE in $SERVICES; do aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE --desired-count 0 --region us-east-1 || true; done
+      - sleep 30
+      - for SERVICE in $SERVICES; do aws ecs delete-service --cluster $CLUSTER_NAME --service $SERVICE --force --region us-east-1 || true; done
       - echo "Destroying Terraform (AWS)..."
       - cd terraform/aws
       - export TF_VAR_commit_sha=$IMAGE_TAG
