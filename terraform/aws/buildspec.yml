@@ -30,23 +30,10 @@ phases:
       - WORKER_REPOSITORY_URI=177633253446.dkr.ecr.us-east-1.amazonaws.com/spring-boot-worker
   build:
     commands:
-      - echo "Building Docker image..."
-      - cd spring-boot-hello
-      - docker build -t $REPOSITORY_URI:latest .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
-      - cd ..
-      - cd spring-boot-worker
-      - docker build -t $WORKER_REPOSITORY_URI:latest .
-      - docker tag $WORKER_REPOSITORY_URI:latest $WORKER_REPOSITORY_URI:$IMAGE_TAG
-      - cd ..
+      - echo "Skipping build for destroy..."
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:latest
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - docker push $WORKER_REPOSITORY_URI:latest
-      - docker push $WORKER_REPOSITORY_URI:$IMAGE_TAG
       - echo "Destroying Terraform (AWS)..."
       - cd terraform/aws
       - export TF_VAR_commit_sha=$IMAGE_TAG
