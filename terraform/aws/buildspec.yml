@@ -31,11 +31,14 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo "Applying state updates..."
+      - echo "Emptying ECR repositories..."
+      - aws ecr list-images --repository-name spring-boot-hello --region us-east-1 --query 'imageIds[*]' --output json > hello_images.json || echo "[]" > hello_images.json
+      - aws ecr batch-delete-image --repository-name spring-boot-hello --region us-east-1 --image-ids file://hello_images.json || true
+      - aws ecr list-images --repository-name spring-boot-worker --region us-east-1 --query 'imageIds[*]' --output json > worker_images.json || echo "[]" > worker_images.json
+      - aws ecr batch-delete-image --repository-name spring-boot-worker --region us-east-1 --image-ids file://worker_images.json || true
+      - echo "Destroying Terraform (AWS)..."
       - cd terraform/aws
       - export TF_VAR_commit_sha=$IMAGE_TAG
-      - terraform apply -auto-approve -lock=false
-      - echo "Destroying Terraform (AWS)..."
       - terraform destroy -auto-approve -lock=false
       - cd ../..
       - echo Writing image definitions file...
