@@ -506,7 +506,8 @@ resource "aws_cloudwatch_log_group" "worker_log_group" {
 }
 
 resource "aws_ecr_repository" "worker_repo" {
-  name = "spring-boot-worker"
+  name         = "spring-boot-worker"
+  force_delete = true
 }
 
 resource "aws_ecs_task_definition" "worker_task" {
