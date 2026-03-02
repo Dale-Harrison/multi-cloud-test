@@ -47,12 +47,9 @@ phases:
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - docker push $WORKER_REPOSITORY_URI:latest
       - docker push $WORKER_REPOSITORY_URI:$IMAGE_TAG
-      - echo "Applying Terraform (AWS)..."
+      - echo "Destroying Terraform (AWS)..."
       - cd terraform/aws
       - export TF_VAR_commit_sha=$IMAGE_TAG
-      - terraform apply -auto-approve
-      - echo "Invalidating CloudFront Cache..."
-      - DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
-      - aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
+      - terraform destroy -auto-approve
       - cd ../..
       - echo Writing image definitions file...
